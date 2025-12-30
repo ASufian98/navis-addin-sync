@@ -18,3 +18,4 @@ D:\navis-addin-sync\obj\Debug\net48\NavisWebAppSync_MarkupCompile.cache
 D:\navis-addin-sync\obj\Debug\net48\NavisWebAppSync.g.resources
 D:\navis-addin-sync\bin\Debug\net48\Newtonsoft.Json.dll
 D:\navis-addin-sync\obj\Debug\net48\NavisWeb.77E89257.Up2Date
+D:\navis-addin-sync\obj\Debug\net48\NavisWebAppSync.sourcelink.json

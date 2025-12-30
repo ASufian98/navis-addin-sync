@@ -18,6 +18,9 @@ namespace NavisWebAppSync
         public string RefreshToken { get; set; }
         public DateTime TokenExpiry { get; set; }
 
+        // User preferences
+        public string LastDownloadPath { get; set; }
+
         private static readonly string ConfigPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "NavisWebAppSync",

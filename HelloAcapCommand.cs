@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Windows.Forms;
 using Autodesk.Navisworks.Api.Plugins;
 using Autodesk.Windows;
@@ -57,18 +58,6 @@ namespace NavisWebAppSync
         }
     }
 
-    // Button command - Hello Acap
-    [Plugin("BINA.HelloAcap", "ACAP", DisplayName = "Hello Acap", ToolTip = "Say Hello to Acap")]
-    [AddInPluginAttribute(AddInLocation.AddIn)]
-    public class HelloAcapCommand : AddInPlugin
-    {
-        public override int Execute(params string[] parameters)
-        {
-            MessageBox.Show("Hello Acap", "BINA", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return 0;
-        }
-    }
-
     // Button command - Pull Latest Files
     [Plugin("BINA.PullLatestFiles", "ACAP", DisplayName = "Pull Latest Files", ToolTip = "Pull the latest files from BINA Cloud")]
     [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\Ribbon_Cloud_16.ico", LargeIcon = "..\\..\\Images\\Ribbon_Cloud_32.ico")]
@@ -78,6 +67,60 @@ namespace NavisWebAppSync
         {
             MessageBox.Show("Pull Latest Files - In Progress", "BINA", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return 0;
+        }
+    }
+
+    // Button command - Choose Download Path
+    [Plugin("BINA.ChoosePath", "ACAP", DisplayName = "Choose Path", ToolTip = "Choose the folder path for downloads")]
+    [AddInPluginAttribute(AddInLocation.AddIn)]
+    public class ChoosePathCommand : AddInPlugin
+    {
+        public override int Execute(params string[] parameters)
+        {
+            var config = BinaConfig.Load();
+            string selectedPath = ShowFolderPickerDialog(config.LastDownloadPath);
+
+            if (selectedPath != null)
+            {
+                config.LastDownloadPath = selectedPath;
+                config.Save();
+                MessageBox.Show($"Download path set to:\n{selectedPath}", "BINA", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+
+            return 0;
+        }
+
+        private string ShowFolderPickerDialog(string defaultPath)
+        {
+            using (var dialog = new FolderBrowserDialog())
+            {
+                dialog.Description = "Select folder to save downloaded files";
+                dialog.ShowNewFolderButton = true;
+
+                // Set initial directory to the default or previously selected path
+                if (!string.IsNullOrEmpty(defaultPath) && Directory.Exists(defaultPath))
+                {
+                    dialog.SelectedPath = defaultPath;
+                }
+                else if (!string.IsNullOrEmpty(defaultPath))
+                {
+                    // Try to use parent directory if the exact path doesn't exist
+                    string parentDir = Path.GetDirectoryName(defaultPath);
+                    if (!string.IsNullOrEmpty(parentDir) && Directory.Exists(parentDir))
+                    {
+                        dialog.SelectedPath = parentDir;
+                    }
+                }
+
+                DialogResult result = dialog.ShowDialog();
+
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.SelectedPath))
+                {
+                    return dialog.SelectedPath;
+                }
+
+                return null;
+            }
         }
     }
 
