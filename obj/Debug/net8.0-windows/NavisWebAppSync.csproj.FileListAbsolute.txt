@@ -1,0 +1,13 @@
+D:\navis-addin-sync\obj\Debug\net8.0-windows\NavisWebAppSync.csproj.AssemblyReference.cache
+D:\navis-addin-sync\obj\Debug\net8.0-windows\NavisWebAppSync.GeneratedMSBuildEditorConfig.editorconfig
+D:\navis-addin-sync\obj\Debug\net8.0-windows\NavisWebAppSync.AssemblyInfoInputs.cache
+D:\navis-addin-sync\obj\Debug\net8.0-windows\NavisWebAppSync.AssemblyInfo.cs
+D:\navis-addin-sync\obj\Debug\net8.0-windows\NavisWebAppSync.csproj.CoreCompileInputs.cache
+D:\navis-addin-sync\bin\Debug\net8.0-windows\NavisWebAppSync.deps.json
+D:\navis-addin-sync\bin\Debug\net8.0-windows\NavisWebAppSync.dll
+D:\navis-addin-sync\bin\Debug\net8.0-windows\NavisWebAppSync.pdb
+D:\navis-addin-sync\obj\Debug\net8.0-windows\NavisWebAppSync.dll
+D:\navis-addin-sync\obj\Debug\net8.0-windows\refint\NavisWebAppSync.dll
+D:\navis-addin-sync\obj\Debug\net8.0-windows\NavisWebAppSync.pdb
+D:\navis-addin-sync\obj\Debug\net8.0-windows\ref\NavisWebAppSync.dll
+D:\navis-addin-sync\bin\Debug\net8.0-windows\BinaRibbon.xaml

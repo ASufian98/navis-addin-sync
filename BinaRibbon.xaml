@@ -1,0 +1,27 @@
+<ad:RibbonControl
+    x:Uid="NavisWebAppSync"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ad="clr-namespace:Autodesk.Windows;assembly=AdWindows"
+    xmlns:nw="clr-namespace:Autodesk.Navisworks.Api.Plugins;assembly=navisworks.gui.roamer">
+
+    <ad:RibbonTab Id="BinaTab" Title="BINA">
+        <ad:RibbonPanel x:Uid="RibbonPanel_Tools" Title="Tools">
+            <ad:RibbonPanelSource>
+                <nw:NWRibbonButton
+                    Id="HelloAcap_Button"
+                    Title="Hello Acap"
+                    ToolTip="Click to say Hello Acap"
+                    Size="Large"
+                    ShowText="True" />
+                <nw:NWRibbonButton
+                    Id="Login_Button"
+                    Title="Login To Bina"
+                    ToolTip="Login to BINA Cloud"
+                    Size="Large"
+                    ShowText="True" />
+            </ad:RibbonPanelSource>
+        </ad:RibbonPanel>
+    </ad:RibbonTab>
+
+</ad:RibbonControl>
