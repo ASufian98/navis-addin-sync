@@ -58,86 +58,8 @@ namespace NavisWebAppSync
         }
     }
 
-    // Button command - Pull Latest Files
-    [Plugin("BINA.PullLatestFiles", "ACAP", DisplayName = "Pull Latest Files", ToolTip = "Pull the latest files from BINA Cloud")]
-    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\Ribbon_Cloud_16.ico", LargeIcon = "..\\..\\Images\\Ribbon_Cloud_32.ico")]
-    public class PullLatestFilesCommand : AddInPlugin
-    {
-        public override int Execute(params string[] parameters)
-        {
-            MessageBox.Show("Pull Latest Files - In Progress", "BINA", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return 0;
-        }
-    }
-
-    // Button command - Choose Download Path
-    [Plugin("BINA.ChoosePath", "ACAP", DisplayName = "Choose Path", ToolTip = "Choose the folder path for downloads")]
-    [AddInPluginAttribute(AddInLocation.AddIn)]
-    public class ChoosePathCommand : AddInPlugin
-    {
-        public override int Execute(params string[] parameters)
-        {
-            var config = BinaConfig.Load();
-            string selectedPath = ShowFolderPickerDialog(config.LastDownloadPath);
-
-            if (selectedPath != null)
-            {
-                config.LastDownloadPath = selectedPath;
-                config.Save();
-                MessageBox.Show($"Download path set to:\n{selectedPath}", "BINA", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-
-            return 0;
-        }
-
-        private string ShowFolderPickerDialog(string defaultPath)
-        {
-            using (var dialog = new FolderBrowserDialog())
-            {
-                dialog.Description = "Select folder to save downloaded files";
-                dialog.ShowNewFolderButton = true;
-
-                // Set initial directory to the default or previously selected path
-                if (!string.IsNullOrEmpty(defaultPath) && Directory.Exists(defaultPath))
-                {
-                    dialog.SelectedPath = defaultPath;
-                }
-                else if (!string.IsNullOrEmpty(defaultPath))
-                {
-                    // Try to use parent directory if the exact path doesn't exist
-                    string parentDir = Path.GetDirectoryName(defaultPath);
-                    if (!string.IsNullOrEmpty(parentDir) && Directory.Exists(parentDir))
-                    {
-                        dialog.SelectedPath = parentDir;
-                    }
-                }
-
-                DialogResult result = dialog.ShowDialog();
-
-                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.SelectedPath))
-                {
-                    return dialog.SelectedPath;
-                }
-
-                return null;
-            }
-        }
-    }
-
-    // Button command - Upload Latest Report
-    [Plugin("BINA.UploadLatestReport", "ACAP", DisplayName = "Upload Latest Report", ToolTip = "Upload the latest report to BINA Cloud")]
-    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\Ribbon_ExportNWD_16.ico", LargeIcon = "..\\..\\Images\\Ribbon_ExportNWD_32.ico")]
-    public class UploadLatestReportCommand : AddInPlugin
-    {
-        public override int Execute(params string[] parameters)
-        {
-            MessageBox.Show("Upload Latest Report - In Progress", "BINA", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return 0;
-        }
-    }
-
-    // Button command - Login To Bina
-    [Plugin("BINA.Login", "ACAP", DisplayName = "Login To Bina", ToolTip = "Login to BINA Cloud")]
+    // Button command - Login To Bina (1st)
+    [Plugin("BINA.01_Login", "ACAP", DisplayName = "Login To Bina", ToolTip = "Login to BINA Cloud")]
     [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\Ribbon_Cloud_16.ico", LargeIcon = "..\\..\\Images\\Ribbon_Cloud_32.ico")]
     public class LoginCommand : AddInPlugin
     {
@@ -236,6 +158,133 @@ namespace NavisWebAppSync
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             }
+        }
+    }
+
+    // Button command - Choose Download Path (2nd)
+    [Plugin("BINA.02_ChoosePath", "ACAP", DisplayName = "Choose Path", ToolTip = "Choose the folder path for downloads")]
+    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\FoldersIcon.ico", LargeIcon = "..\\..\\Images\\FoldersIcon.ico")]
+    public class ChoosePathCommand : AddInPlugin
+    {
+        public override int Execute(params string[] parameters)
+        {
+            var config = BinaConfig.Load();
+            string selectedPath = ShowFolderPickerDialog(config.LastDownloadPath);
+
+            if (selectedPath != null)
+            {
+                config.LastDownloadPath = selectedPath;
+                config.Save();
+                MessageBox.Show($"Download path set to:\n{selectedPath}", "BINA", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+
+            return 0;
+        }
+
+        private string ShowFolderPickerDialog(string defaultPath)
+        {
+            using (var dialog = new FolderBrowserDialog())
+            {
+                dialog.Description = "Select folder to save downloaded files";
+                dialog.ShowNewFolderButton = true;
+
+                // Set initial directory to the default or previously selected path
+                if (!string.IsNullOrEmpty(defaultPath) && Directory.Exists(defaultPath))
+                {
+                    dialog.SelectedPath = defaultPath;
+                }
+                else if (!string.IsNullOrEmpty(defaultPath))
+                {
+                    // Try to use parent directory if the exact path doesn't exist
+                    string parentDir = Path.GetDirectoryName(defaultPath);
+                    if (!string.IsNullOrEmpty(parentDir) && Directory.Exists(parentDir))
+                    {
+                        dialog.SelectedPath = parentDir;
+                    }
+                }
+
+                DialogResult result = dialog.ShowDialog();
+
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.SelectedPath))
+                {
+                    return dialog.SelectedPath;
+                }
+
+                return null;
+            }
+        }
+    }
+
+    // Button command - Pull Latest Files (3rd)
+    [Plugin("BINA.03_PullLatestFiles", "ACAP", DisplayName = "Pull Latest Files", ToolTip = "Pull the latest files from BINA Cloud")]
+    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\Ribbon_Refresh_16.ico", LargeIcon = "..\\..\\Images\\Ribbon_Refresh_32.ico")]
+    public class PullLatestFilesCommand : AddInPlugin
+    {
+        public override int Execute(params string[] parameters)
+        {
+            try
+            {
+                var config = BinaConfig.Load();
+
+                // Check if logged in
+                if (!config.IsLoggedIn())
+                {
+                    MessageBox.Show(
+                        "Please login to BINA Cloud first.",
+                        "Not Logged In",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return 0;
+                }
+
+                // Get or set download path
+                string downloadPath = config.LastDownloadPath;
+                if (string.IsNullOrEmpty(downloadPath) || !Directory.Exists(downloadPath))
+                {
+                    // Show folder picker
+                    using (var dialog = new FolderBrowserDialog())
+                    {
+                        dialog.Description = "Select folder to save downloaded files";
+                        dialog.ShowNewFolderButton = true;
+
+                        if (dialog.ShowDialog() != DialogResult.OK)
+                        {
+                            return 0; // User cancelled
+                        }
+
+                        downloadPath = dialog.SelectedPath;
+                        config.LastDownloadPath = downloadPath;
+                        config.Save();
+                    }
+                }
+
+                // Show download results window
+                var downloadWindow = new DownloadResultsWindow(config, downloadPath);
+                downloadWindow.ShowDialog();
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error: {ex.Message}",
+                    "Download Failed",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return 1;
+            }
+        }
+    }
+
+    // Button command - Upload Latest Report (4th)
+    [Plugin("BINA.04_UploadLatestReport", "ACAP", DisplayName = "Upload Latest Report", ToolTip = "Upload the latest report to BINA Cloud")]
+    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\Ribbon_Send_16.ico", LargeIcon = "..\\..\\Images\\Ribbon_Send_32.ico")]
+    public class UploadLatestReportCommand : AddInPlugin
+    {
+        public override int Execute(params string[] parameters)
+        {
+            MessageBox.Show("Upload Latest Report - In Progress", "BINA", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return 0;
         }
     }
 }

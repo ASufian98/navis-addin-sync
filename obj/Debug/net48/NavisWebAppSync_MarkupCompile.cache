@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NETFRAMEWORK;NET48;
 
-3252568952
+41684440330
 
-7149279271
+8-1238407823
 26-1201619727
-LoginWindow.xaml;ProjectPickerWindow.xaml;UserInfoWindow.xaml;
+DownloadResultsWindow.xaml;LoginWindow.xaml;ProjectPickerWindow.xaml;UserInfoWindow.xaml;
 
 False
 

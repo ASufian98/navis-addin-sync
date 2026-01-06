@@ -9,15 +9,27 @@
         <ad:RibbonPanel x:Uid="RibbonPanel_Tools" Title="Tools">
             <ad:RibbonPanelSource>
                 <nw:NWRibbonButton
-                    Id="HelloAcap_Button"
-                    Title="Hello Acap"
-                    ToolTip="Click to say Hello Acap"
+                    Id="BINA.Login"
+                    Title="Login To Bina"
+                    ToolTip="Login to BINA Cloud"
                     Size="Large"
                     ShowText="True" />
                 <nw:NWRibbonButton
-                    Id="Login_Button"
-                    Title="Login To Bina"
-                    ToolTip="Login to BINA Cloud"
+                    Id="BINA.ChoosePath"
+                    Title="Choose Path"
+                    ToolTip="Choose the folder path for downloads"
+                    Size="Large"
+                    ShowText="True" />
+                <nw:NWRibbonButton
+                    Id="BINA.PullLatestFiles"
+                    Title="Pull Latest Files"
+                    ToolTip="Pull the latest files from BINA Cloud"
+                    Size="Large"
+                    ShowText="True" />
+                <nw:NWRibbonButton
+                    Id="BINA.UploadLatestReport"
+                    Title="Upload Latest Report"
+                    ToolTip="Upload the latest report to BINA Cloud"
                     Size="Large"
                     ShowText="True" />
             </ad:RibbonPanelSource>
