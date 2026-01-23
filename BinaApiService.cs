@@ -10,7 +10,7 @@ namespace NavisWebAppSync
 {
     public class BinaApiService
     {
-        private static readonly string BaseUrl = "https://dd13f4bad457.ngrok-free.app";
+        private static readonly string BaseUrl = "https://bina-design-stg.bina.cloud";
 
         /// <summary>
         /// Login with email and password, returns full login response including tokens
