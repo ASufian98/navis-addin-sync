@@ -25,6 +25,32 @@ namespace NavisWebAppSync
             Loaded += async (s, e) => await StartDownloadAsync();
         }
 
+        private List<(string DisciplineType, string FolderName, BimLatestFile File)> GetFilesToDownload(
+            BimDisciplineResponse disciplineFiles)
+        {
+            var filesToDownload = new List<(string DisciplineType, string FolderName, BimLatestFile File)>();
+
+            void AddDisciplineFiles(string disciplineName, BimDiscipline discipline)
+            {
+                if (discipline?.Folders == null) return;
+
+                foreach (var folder in discipline.Folders)
+                {
+                    if (folder?.LatestFile != null && !string.IsNullOrEmpty(folder.LatestFile.FileUrl))
+                    {
+                        filesToDownload.Add((disciplineName, folder.Name, folder.LatestFile));
+                    }
+                }
+            }
+
+            AddDisciplineFiles("Structure", disciplineFiles.Structure);
+            AddDisciplineFiles("Architecture", disciplineFiles.Architecture);
+            AddDisciplineFiles("Mechanical", disciplineFiles.Mechanical);
+            AddDisciplineFiles("Electrical", disciplineFiles.Electrical);
+
+            return filesToDownload;
+        }
+
         private async Task StartDownloadAsync()
         {
             try
@@ -45,15 +71,7 @@ namespace NavisWebAppSync
                     return;
                 }
 
-                var filesToDownload = new List<(string Type, BimDisciplineFile File)>();
-                if (disciplineFiles.Structure != null && !string.IsNullOrEmpty(disciplineFiles.Structure.FileUrl))
-                    filesToDownload.Add(("Structure", disciplineFiles.Structure));
-                if (disciplineFiles.Architecture != null && !string.IsNullOrEmpty(disciplineFiles.Architecture.FileUrl))
-                    filesToDownload.Add(("Architecture", disciplineFiles.Architecture));
-                if (disciplineFiles.HVAC != null && !string.IsNullOrEmpty(disciplineFiles.HVAC.FileUrl))
-                    filesToDownload.Add(("HVAC", disciplineFiles.HVAC));
-                if (disciplineFiles.Electrical != null && !string.IsNullOrEmpty(disciplineFiles.Electrical.FileUrl))
-                    filesToDownload.Add(("Electrical", disciplineFiles.Electrical));
+                var filesToDownload = GetFilesToDownload(disciplineFiles);
 
                 if (filesToDownload.Count == 0)
                 {
@@ -66,11 +84,11 @@ namespace NavisWebAppSync
                 }
 
                 // Initialize download items
-                foreach (var (type, file) in filesToDownload)
+                foreach (var (type, folderName, file) in filesToDownload)
                 {
                     _downloadItems.Add(new DownloadItemViewModel
                     {
-                        DisciplineType = type,
+                        DisciplineType = $"{type} / {folderName}",
                         FileName = file.FileName,
                         StatusIcon = "...",
                         StatusText = "Waiting..."
@@ -86,14 +104,14 @@ namespace NavisWebAppSync
 
                 for (int i = 0; i < filesToDownload.Count; i++)
                 {
-                    var (type, file) = filesToDownload[i];
+                    var (type, folderName, file) = filesToDownload[i];
                     var item = _downloadItems[i];
 
                     item.StatusIcon = "...";
                     item.StatusText = $"Downloading {file.FileName}...";
-                    ProgressText.Text = $"Downloading {type} ({i + 1}/{filesToDownload.Count})...";
+                    ProgressText.Text = $"Downloading {type} / {folderName} ({i + 1}/{filesToDownload.Count})...";
 
-                    string disciplineFolder = Path.Combine(_downloadPath, type);
+                    string disciplineFolder = Path.Combine(_downloadPath, type, folderName);
                     string result = await BinaApiService.DownloadFileAsync(
                         file.FileUrl, disciplineFolder, file.FileName);
 

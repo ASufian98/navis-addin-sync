@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace NavisWebAppSync
 {
@@ -16,6 +17,8 @@ namespace NavisWebAppSync
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public string BimRole { get; set; }
+        public List<string> DisciplineTypes { get; set; }
     }
 
     public class UserProjectsResponse
@@ -33,12 +36,35 @@ namespace NavisWebAppSync
         public DateTime? CreatedAt { get; set; }
     }
 
+    public class BimLatestFile
+    {
+        public int Id { get; set; }
+        public string FileName { get; set; }
+        public string FileUrl { get; set; }
+        public string Version { get; set; }
+    }
+
+    public class BimDisciplineFolder
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public BimLatestFile LatestFile { get; set; }
+    }
+
+    public class BimDiscipline
+    {
+        public List<BimDisciplineFolder> Folders { get; set; }
+    }
+
     public class BimDisciplineResponse
     {
-        public BimDisciplineFile Structure { get; set; }
-        public BimDisciplineFile Architecture { get; set; }
-        public BimDisciplineFile HVAC { get; set; }
-        public BimDisciplineFile Electrical { get; set; }
+        public BimDiscipline Structure { get; set; }
+        public BimDiscipline Architecture { get; set; }
+
+        [JsonProperty("mechanical")]
+        public BimDiscipline Mechanical { get; set; }
+
+        public BimDiscipline Electrical { get; set; }
     }
 
     public class DownloadResult

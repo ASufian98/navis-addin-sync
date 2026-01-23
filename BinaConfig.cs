@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -14,6 +15,8 @@ namespace NavisWebAppSync
         // Session data
         public string UserName { get; set; }
         public string ProjectName { get; set; }
+        public string BimRole { get; set; }
+        public List<string> DisciplineTypes { get; set; }
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
         public DateTime TokenExpiry { get; set; }
@@ -80,6 +83,8 @@ namespace NavisWebAppSync
             Password = null;
             UserName = null;
             ProjectName = null;
+            BimRole = null;
+            DisciplineTypes = null;
             AccessToken = null;
             RefreshToken = null;
             TokenExpiry = DateTime.MinValue;

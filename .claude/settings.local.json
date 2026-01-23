@@ -4,7 +4,8 @@
       "Bash(cd:*)",
       "WebSearch",
       "Bash(dir \"C:\\\\Program Files\\\\Autodesk\\\\Navisworks Manage 2026\\\\Images\")",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(dotnet build:*)"
     ]
   }
 }

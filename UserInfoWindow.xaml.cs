@@ -18,6 +18,10 @@ namespace NavisWebAppSync
             // Display user info
             UserNameText.Text = config.UserName ?? config.Email ?? "Unknown";
             ProjectNameText.Text = config.ProjectName ?? $"Project ID: {config.ProjectId}";
+            BimRoleText.Text = config.BimRole ?? "Not assigned";
+            DisciplineTypesText.Text = config.DisciplineTypes != null && config.DisciplineTypes.Count > 0
+                ? string.Join(", ", config.DisciplineTypes)
+                : "All Disciplines";
         }
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)

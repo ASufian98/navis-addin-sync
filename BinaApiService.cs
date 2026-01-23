@@ -10,7 +10,7 @@ namespace NavisWebAppSync
 {
     public class BinaApiService
     {
-        private static readonly string BaseUrl = "https://58a18544c731.ngrok-free.app";
+        private static readonly string BaseUrl = "https://dd13f4bad457.ngrok-free.app";
 
         /// <summary>
         /// Login with email and password, returns full login response including tokens
@@ -132,10 +132,10 @@ namespace NavisWebAppSync
                     var disciplineResponse = JsonConvert.DeserializeObject<BimDisciplineResponse>(responseBody);
 
                     // Log what we parsed
-                    LogError($"Parsed - Structure: {disciplineResponse?.Structure?.FileUrl ?? "null"}");
-                    LogError($"Parsed - Architecture: {disciplineResponse?.Architecture?.FileUrl ?? "null"}");
-                    LogError($"Parsed - HVAC: {disciplineResponse?.HVAC?.FileUrl ?? "null"}");
-                    LogError($"Parsed - Electrical: {disciplineResponse?.Electrical?.FileUrl ?? "null"}");
+                    LogError($"Parsed - Structure folders: {disciplineResponse?.Structure?.Folders?.Count ?? 0}");
+                    LogError($"Parsed - Architecture folders: {disciplineResponse?.Architecture?.Folders?.Count ?? 0}");
+                    LogError($"Parsed - Mechanical folders: {disciplineResponse?.Mechanical?.Folders?.Count ?? 0}");
+                    LogError($"Parsed - Electrical folders: {disciplineResponse?.Electrical?.Folders?.Count ?? 0}");
 
                     return disciplineResponse;
                 }

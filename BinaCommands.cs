@@ -116,6 +116,8 @@ namespace NavisWebAppSync
                         {
                             config.ProjectId = projectPicker.SelectedProjectId;
                             config.ProjectName = projectPicker.SelectedProjectName;
+                            config.BimRole = projectPicker.SelectedBimRole;
+                            config.DisciplineTypes = projectPicker.SelectedDisciplineTypes;
                             config.Save();
 
                             MessageBox.Show(
@@ -150,6 +152,8 @@ namespace NavisWebAppSync
             {
                 config.ProjectId = projectPicker.SelectedProjectId;
                 config.ProjectName = projectPicker.SelectedProjectName;
+                config.BimRole = projectPicker.SelectedBimRole;
+                config.DisciplineTypes = projectPicker.SelectedDisciplineTypes;
                 config.Save();
 
                 MessageBox.Show(
