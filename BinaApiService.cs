@@ -10,7 +10,7 @@ namespace NavisWebAppSync
 {
     public class BinaApiService
     {
-        private static readonly string BaseUrl = "https://api-stg.bina.cloud";
+        private static readonly string BaseUrl = "https://a811-2001-f40-935-7c0f-1919-f9ac-b189-5aa1.ngrok-free.app";
 
         /// <summary>
         /// Login with email and password, returns full login response including tokens
@@ -144,6 +144,86 @@ namespace NavisWebAppSync
             {
                 LogError($"GetBimDisciplineFiles exception: {ex.Message}");
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Upload a clash detection HTML report to the server
+        /// </summary>
+        public static async Task<ClashUploadResponse> UploadClashReportAsync(
+            int projectId,
+            string accessToken,
+            string filePath,
+            ClashCategory category,
+            string name = null,
+            string description = null)
+        {
+            try
+            {
+                string url = $"{BaseUrl}/api/clash-detection/project/{projectId}/upload";
+                LogError($"Uploading clash report to: {url}");
+                LogError($"File: {filePath}, Category: {category}");
+
+                using (var httpClient = new HttpClient())
+                {
+                    httpClient.Timeout = TimeSpan.FromMinutes(5);
+                    httpClient.DefaultRequestHeaders.Add("User-Agent", "NavisBinaSync/1.0");
+                    httpClient.DefaultRequestHeaders.Add("ngrok-skip-browser-warning", "true");
+                    httpClient.DefaultRequestHeaders.Authorization =
+                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+                    using (var formData = new MultipartFormDataContent())
+                    {
+                        // Add the file
+                        byte[] fileBytes = File.ReadAllBytes(filePath);
+                        var fileContent = new ByteArrayContent(fileBytes);
+                        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/html");
+                        string fileName = Path.GetFileName(filePath);
+                        formData.Add(fileContent, "file", fileName);
+
+                        // Add category (required)
+                        formData.Add(new StringContent(category.ToString()), "category");
+
+                        // Add optional fields
+                        if (!string.IsNullOrEmpty(name))
+                        {
+                            formData.Add(new StringContent(name), "name");
+                        }
+
+                        if (!string.IsNullOrEmpty(description))
+                        {
+                            formData.Add(new StringContent(description), "description");
+                        }
+
+                        var response = await httpClient.PostAsync(url, formData);
+                        string responseBody = await response.Content.ReadAsStringAsync();
+
+                        LogError($"Upload response status: {response.StatusCode}");
+                        LogError($"Upload response body: {responseBody}");
+
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            LogError($"Upload failed with status: {response.StatusCode}");
+                            return new ClashUploadResponse
+                            {
+                                Success = false,
+                                Message = $"Upload failed: {response.StatusCode} - {responseBody}"
+                            };
+                        }
+
+                        var uploadResponse = JsonConvert.DeserializeObject<ClashUploadResponse>(responseBody);
+                        return uploadResponse;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError($"Upload exception: {ex.Message}");
+                return new ClashUploadResponse
+                {
+                    Success = false,
+                    Message = $"Upload failed: {ex.Message}"
+                };
             }
         }
 
