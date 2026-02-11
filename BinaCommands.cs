@@ -281,14 +281,67 @@ namespace NavisWebAppSync
     }
 
     // Button command - Upload Latest Report (4th)
-    [Plugin("BINA.04_UploadLatestReport", "ACAP", DisplayName = "Upload Latest Report", ToolTip = "Upload the latest report to BINA Cloud")]
+    [Plugin("BINA.04_UploadLatestReport", "ACAP", DisplayName = "Upload Clash Report", ToolTip = "Upload clash detection report to BINA Cloud")]
     [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\Ribbon_Send_16.ico", LargeIcon = "..\\..\\Images\\Ribbon_Send_32.ico")]
     public class UploadLatestReportCommand : AddInPlugin
     {
         public override int Execute(params string[] parameters)
         {
-            MessageBox.Show("Upload Latest Report - In Progress", "BINA", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return 0;
+            try
+            {
+                var config = BinaConfig.Load();
+
+                // Check if logged in
+                if (!config.IsLoggedIn())
+                {
+                    MessageBox.Show(
+                        "Please login to BINA Cloud first.",
+                        "Not Logged In",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return 0;
+                }
+
+                // Check if project is selected
+                if (config.ProjectId <= 0)
+                {
+                    MessageBox.Show(
+                        "Please select a project first.",
+                        "No Project Selected",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return 0;
+                }
+
+                // Show upload window
+                var uploadWindow = new ClashUploadWindow(config);
+                var result = uploadWindow.ShowDialog();
+
+                if (result == true && uploadWindow.UploadSuccessful)
+                {
+                    var uploadResult = uploadWindow.UploadResult;
+                    string successMessage = $"Clash report uploaded successfully!\n\n" +
+                        $"Version: {uploadResult?.Data?.Version ?? 0}\n" +
+                        $"Total Clashes: {uploadResult?.Data?.TotalClashes ?? 0}";
+
+                    MessageBox.Show(
+                        successMessage,
+                        "Upload Successful",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error: {ex.Message}",
+                    "Upload Failed",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return 1;
+            }
         }
     }
 }
