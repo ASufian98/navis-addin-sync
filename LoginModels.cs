@@ -78,15 +78,18 @@ namespace NavisWebAppSync
 
     /// <summary>
     /// Clash detection category enum for Navisworks clash reports
+    /// Values must match the API expected format exactly
     /// </summary>
     public enum ClashCategory
     {
-        ARCH_VS_MECH,
-        ARCH_VS_STRUCT,
-        MECH_VS_STRUCT,
-        ARCH_VS_ELEC,
-        MECH_VS_ELEC,
-        STRUCT_VS_ELEC
+        ArchitectureMechanical,
+        ArchitectureStructure,
+        ArchitectureElectrical,
+        MechanicalElectrical,
+        MechanicalMechanical,
+        StructureElectrical,
+        StructureMechanical,
+        ElectricalElectrical
     }
 
     /// <summary>
@@ -102,12 +105,14 @@ namespace NavisWebAppSync
         {
             return new List<ClashCategoryInfo>
             {
-                new ClashCategoryInfo { Category = ClashCategory.ARCH_VS_MECH, DisplayName = "Architecture vs Mechanical", Description = "Clashes between architectural and mechanical elements" },
-                new ClashCategoryInfo { Category = ClashCategory.ARCH_VS_STRUCT, DisplayName = "Architecture vs Structural", Description = "Clashes between architectural and structural elements" },
-                new ClashCategoryInfo { Category = ClashCategory.MECH_VS_STRUCT, DisplayName = "Mechanical vs Structural", Description = "Clashes between mechanical and structural elements" },
-                new ClashCategoryInfo { Category = ClashCategory.ARCH_VS_ELEC, DisplayName = "Architecture vs Electrical", Description = "Clashes between architectural and electrical elements" },
-                new ClashCategoryInfo { Category = ClashCategory.MECH_VS_ELEC, DisplayName = "Mechanical vs Electrical", Description = "Clashes between mechanical and electrical elements" },
-                new ClashCategoryInfo { Category = ClashCategory.STRUCT_VS_ELEC, DisplayName = "Structural vs Electrical", Description = "Clashes between structural and electrical elements" }
+                new ClashCategoryInfo { Category = ClashCategory.ArchitectureMechanical, DisplayName = "Architecture vs Mechanical", Description = "Clashes between architectural and mechanical elements" },
+                new ClashCategoryInfo { Category = ClashCategory.ArchitectureStructure, DisplayName = "Architecture vs Structure", Description = "Clashes between architectural and structural elements" },
+                new ClashCategoryInfo { Category = ClashCategory.ArchitectureElectrical, DisplayName = "Architecture vs Electrical", Description = "Clashes between architectural and electrical elements" },
+                new ClashCategoryInfo { Category = ClashCategory.MechanicalElectrical, DisplayName = "Mechanical vs Electrical", Description = "Clashes between mechanical and electrical elements" },
+                new ClashCategoryInfo { Category = ClashCategory.MechanicalMechanical, DisplayName = "Mechanical vs Mechanical", Description = "Clashes within mechanical elements" },
+                new ClashCategoryInfo { Category = ClashCategory.StructureElectrical, DisplayName = "Structure vs Electrical", Description = "Clashes between structural and electrical elements" },
+                new ClashCategoryInfo { Category = ClashCategory.StructureMechanical, DisplayName = "Structure vs Mechanical", Description = "Clashes between structural and mechanical elements" },
+                new ClashCategoryInfo { Category = ClashCategory.ElectricalElectrical, DisplayName = "Electrical vs Electrical", Description = "Clashes within electrical elements" }
             };
         }
     }
