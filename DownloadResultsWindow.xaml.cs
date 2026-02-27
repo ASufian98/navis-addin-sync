@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -25,10 +26,10 @@ namespace NavisWebAppSync
             Loaded += async (s, e) => await StartDownloadAsync();
         }
 
-        private List<(string DisciplineType, string FolderName, BimLatestFile File)> GetFilesToDownload(
+        private List<(string DisciplineType, string FolderName, BimLatestFile File, string Error)> GetFilesToDownload(
             BimDisciplineResponse disciplineFiles)
         {
-            var filesToDownload = new List<(string DisciplineType, string FolderName, BimLatestFile File)>();
+            var filesToDownload = new List<(string DisciplineType, string FolderName, BimLatestFile File, string Error)>();
 
             void AddDisciplineFiles(string disciplineName, BimDiscipline discipline)
             {
@@ -36,9 +37,16 @@ namespace NavisWebAppSync
 
                 foreach (var folder in discipline.Folders)
                 {
-                    if (folder?.LatestFile != null && !string.IsNullOrEmpty(folder.LatestFile.FileUrl))
+                    if (folder == null) continue;
+
+                    // Check if there's an error (no .nwc file linked)
+                    if (!string.IsNullOrEmpty(folder.Error))
                     {
-                        filesToDownload.Add((disciplineName, folder.Name, folder.LatestFile));
+                        filesToDownload.Add((disciplineName, folder.Name, null, folder.Error));
+                    }
+                    else if (folder.LatestFile != null && !string.IsNullOrEmpty(folder.LatestFile.FileUrl))
+                    {
+                        filesToDownload.Add((disciplineName, folder.Name, folder.LatestFile, null));
                     }
                 }
             }
@@ -84,32 +92,63 @@ namespace NavisWebAppSync
                 }
 
                 // Initialize download items
-                foreach (var (type, folderName, file) in filesToDownload)
+                int errorCount = 0;
+                foreach (var (type, folderName, file, error) in filesToDownload)
                 {
-                    _downloadItems.Add(new DownloadItemViewModel
+                    if (!string.IsNullOrEmpty(error))
                     {
-                        DisciplineType = $"{type} / {folderName}",
-                        FileName = file.FileName,
-                        StatusIcon = "...",
-                        StatusText = "Waiting..."
-                    });
+                        // This folder has no .nwc file linked - show error immediately
+                        _downloadItems.Add(new DownloadItemViewModel
+                        {
+                            DisciplineType = $"{type} / {folderName}",
+                            FileName = "(No NWC linked)",
+                            StatusIcon = "✗",
+                            StatusColor = System.Windows.Media.Brushes.Red,
+                            StatusText = error
+                        });
+                        errorCount++;
+                    }
+                    else
+                    {
+                        _downloadItems.Add(new DownloadItemViewModel
+                        {
+                            DisciplineType = $"{type} / {folderName}",
+                            FileName = file.FileName,
+                            StatusIcon = "•",
+                            StatusColor = System.Windows.Media.Brushes.Gray,
+                            StatusText = "Waiting..."
+                        });
+                    }
                 }
 
+                // Count files that can actually be downloaded
+                var downloadableFiles = filesToDownload.Where(f => f.File != null).ToList();
+
                 ProgressBar.IsIndeterminate = false;
-                ProgressBar.Maximum = filesToDownload.Count;
+                ProgressBar.Maximum = downloadableFiles.Count > 0 ? downloadableFiles.Count : 1;
                 ProgressBar.Value = 0;
 
                 int successCount = 0;
                 int failCount = 0;
+                int downloadIndex = 0;
 
                 for (int i = 0; i < filesToDownload.Count; i++)
                 {
-                    var (type, folderName, file) = filesToDownload[i];
+                    var (type, folderName, file, error) = filesToDownload[i];
                     var item = _downloadItems[i];
 
-                    item.StatusIcon = "...";
+                    // Skip items with errors (already marked)
+                    if (!string.IsNullOrEmpty(error))
+                    {
+                        failCount++;
+                        continue;
+                    }
+
+                    downloadIndex++;
+                    item.StatusIcon = "↓";
+                    item.StatusColor = System.Windows.Media.Brushes.DodgerBlue;
                     item.StatusText = $"Downloading {file.FileName}...";
-                    ProgressText.Text = $"Downloading {type} / {folderName} ({i + 1}/{filesToDownload.Count})...";
+                    ProgressText.Text = $"Downloading {type} / {folderName} ({downloadIndex}/{downloadableFiles.Count})...";
 
                     string disciplineFolder = Path.Combine(_downloadPath, type, folderName);
                     string result = await BinaApiService.DownloadFileAsync(
@@ -117,22 +156,24 @@ namespace NavisWebAppSync
 
                     if (!string.IsNullOrEmpty(result))
                     {
-                        item.StatusIcon = "[OK]";
+                        item.StatusIcon = "✓";
+                        item.StatusColor = System.Windows.Media.Brushes.Green;
                         item.StatusText = result;
                         successCount++;
                     }
                     else
                     {
-                        item.StatusIcon = "[X]";
+                        item.StatusIcon = "✗";
+                        item.StatusColor = System.Windows.Media.Brushes.Red;
                         item.StatusText = "Download failed";
                         failCount++;
                     }
 
-                    ProgressBar.Value = i + 1;
+                    ProgressBar.Value = downloadIndex;
                 }
 
                 // Update final status
-                if (failCount == 0)
+                if (failCount == 0 && successCount > 0)
                 {
                     HeaderText.Text = "Download Complete";
                     HeaderText.Foreground = System.Windows.Media.Brushes.Green;
@@ -148,9 +189,15 @@ namespace NavisWebAppSync
                     HeaderText.Foreground = System.Windows.Media.Brushes.Orange;
                 }
 
-                ProgressText.Text = $"Completed: {successCount} successful, {failCount} failed";
+                string statusText = $"Completed: {successCount} successful";
+                if (failCount > 0)
+                    statusText += $", {failCount - errorCount} failed";
+                if (errorCount > 0)
+                    statusText += $", {errorCount} missing NWC";
+                ProgressText.Text = statusText;
                 SummaryText.Text = $"Files saved to: {_downloadPath}";
                 CloseButton.IsEnabled = true;
+                OpenFolderButton.IsEnabled = true;
             }
             catch (Exception ex)
             {
@@ -160,6 +207,18 @@ namespace NavisWebAppSync
                 ProgressBar.IsIndeterminate = false;
                 CloseButton.IsEnabled = true;
             }
+        }
+
+        private void OpenFolderButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (Directory.Exists(_downloadPath))
+                {
+                    System.Diagnostics.Process.Start("explorer.exe", _downloadPath);
+                }
+            }
+            catch { }
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -172,6 +231,7 @@ namespace NavisWebAppSync
     {
         private string _statusIcon;
         private string _statusText;
+        private System.Windows.Media.Brush _statusColor;
 
         public string DisciplineType { get; set; }
         public string FileName { get; set; }
@@ -186,6 +246,12 @@ namespace NavisWebAppSync
         {
             get => _statusText;
             set { _statusText = value; OnPropertyChanged(nameof(StatusText)); }
+        }
+
+        public System.Windows.Media.Brush StatusColor
+        {
+            get => _statusColor;
+            set { _statusColor = value; OnPropertyChanged(nameof(StatusColor)); }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

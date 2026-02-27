@@ -49,6 +49,7 @@ namespace NavisWebAppSync
         public int Id { get; set; }
         public string Name { get; set; }
         public BimLatestFile LatestFile { get; set; }
+        public string Error { get; set; }
     }
 
     public class BimDiscipline
