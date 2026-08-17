@@ -22,6 +22,22 @@ namespace NavisWebAppSync
             DisciplineTypesText.Text = config.DisciplineTypes != null && config.DisciplineTypes.Count > 0
                 ? string.Join(", ", config.DisciplineTypes)
                 : "All Disciplines";
+
+            // Set environment toggle
+            UseProductionCheckbox.IsChecked = config.UseProduction;
+            UpdateEnvironmentUrl();
+        }
+
+        private void UseProductionCheckbox_Changed(object sender, RoutedEventArgs e)
+        {
+            _config.UseProduction = UseProductionCheckbox.IsChecked ?? false;
+            _config.Save();
+            UpdateEnvironmentUrl();
+        }
+
+        private void UpdateEnvironmentUrl()
+        {
+            EnvironmentUrlText.Text = _config.GetApiBaseUrl();
         }
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)

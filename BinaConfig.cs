@@ -24,6 +24,19 @@ namespace NavisWebAppSync
         // User preferences
         public string LastDownloadPath { get; set; }
 
+        // Environment setting (staging or production)
+        public bool UseProduction { get; set; } = false;
+
+        /// <summary>
+        /// Returns the API base URL based on environment setting
+        /// </summary>
+        public string GetApiBaseUrl()
+        {
+            return UseProduction
+                ? "https://api.binacloud.ai"
+                : "https://api-stg.binacloud.ai";
+        }
+
         private static readonly string ConfigPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "NavisWebAppSync",

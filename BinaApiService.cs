@@ -10,7 +10,14 @@ namespace NavisWebAppSync
 {
     public class BinaApiService
     {
-        private static readonly string BaseUrl = "https://api-stg.bina.cloud";
+        /// <summary>
+        /// Get the API base URL from config (staging or production)
+        /// </summary>
+        private static string GetBaseUrl()
+        {
+            var config = BinaConfig.Load();
+            return config.GetApiBaseUrl();
+        }
 
         /// <summary>
         /// Login with email and password, returns full login response including tokens
@@ -19,7 +26,7 @@ namespace NavisWebAppSync
         {
             try
             {
-                LogError($"Attempting login to {BaseUrl}/api/auth/user/sign-in with email: {email}");
+                LogError($"Attempting login to {GetBaseUrl()}/api/auth/user/sign-in with email: {email}");
 
                 using (var httpClient = new HttpClient())
                 {
@@ -37,7 +44,7 @@ namespace NavisWebAppSync
                     string jsonContent = JsonConvert.SerializeObject(loginData);
                     var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                    var response = await httpClient.PostAsync($"{BaseUrl}/api/auth/user/sign-in", content);
+                    var response = await httpClient.PostAsync($"{GetBaseUrl()}/api/auth/user/sign-in", content);
                     string responseBody = await response.Content.ReadAsStringAsync();
 
                     LogError($"Login response status: {response.StatusCode}");
@@ -77,7 +84,7 @@ namespace NavisWebAppSync
                     httpClient.DefaultRequestHeaders.Authorization =
                         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
-                    var response = await httpClient.GetAsync($"{BaseUrl}/api/cloud-docs/bim-discipline/user/projects");
+                    var response = await httpClient.GetAsync($"{GetBaseUrl()}/api/cloud-docs/bim-discipline/user/projects");
                     string responseBody = await response.Content.ReadAsStringAsync();
 
                     LogError($"GetUserProjects response status: {response.StatusCode}");
@@ -106,7 +113,7 @@ namespace NavisWebAppSync
         {
             try
             {
-                string url = $"{BaseUrl}/api/cloud-docs/bim-discipline/project/{projectId}/latest-shared-urls";
+                string url = $"{GetBaseUrl()}/api/cloud-docs/bim-discipline/project/{projectId}/latest-shared-urls";
                 LogError($"Fetching BIM discipline files from: {url}");
 
                 using (var httpClient = new HttpClient())
@@ -160,7 +167,7 @@ namespace NavisWebAppSync
         {
             try
             {
-                string url = $"{BaseUrl}/api/clash-detection/project/{projectId}/upload";
+                string url = $"{GetBaseUrl()}/api/clash-detection/project/{projectId}/upload";
                 LogError($"Uploading clash report to: {url}");
                 LogError($"File: {filePath}, Category: {category}");
 
