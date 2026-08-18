@@ -24,6 +24,19 @@ namespace NavisWebAppSync
         // User preferences
         public string LastDownloadPath { get; set; }
 
+        // Environment setting (production by default, staging for testing)
+        public bool UseStaging { get; set; } = false;
+
+        /// <summary>
+        /// Returns the API base URL based on environment setting
+        /// </summary>
+        public string GetApiBaseUrl()
+        {
+            return UseStaging
+                ? "https://api-stg.binacloud.ai"
+                : "https://api.binacloud.ai";
+        }
+
         private static readonly string ConfigPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "NavisWebAppSync",
@@ -40,11 +53,29 @@ namespace NavisWebAppSync
                     return JsonConvert.DeserializeObject<BinaConfig>(json);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                // Log config load errors - important for debugging environment issues
+                LogError($"Failed to load config: {ex.Message}");
             }
 
             return new BinaConfig();
+        }
+
+        private static void LogError(string message)
+        {
+            try
+            {
+                string logPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                    "bina_navis_log.txt");
+                string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}";
+                File.AppendAllText(logPath, logEntry);
+            }
+            catch
+            {
+                // Ignore logging errors
+            }
         }
 
         public void Save()

@@ -14,20 +14,40 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <TextBlock Grid.Row="0"
-                   Text="Login to BINA Cloud"
-                   FontSize="20"
-                   FontWeight="Bold"
-                   Foreground="#333333"
-                   Margin="0,0,0,20"/>
+        <!-- Header with Environment -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Login to BINA Cloud"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       Foreground="#333333"/>
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <TextBlock Text="Environment:"
+                           FontSize="12"
+                           Foreground="#666666"
+                           VerticalAlignment="Center"/>
+                <TextBlock x:Name="EnvironmentText"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Foreground="#4CAF50"
+                           Margin="5,0,10,0"
+                           VerticalAlignment="Center"/>
+                <CheckBox x:Name="UseStagingCheckbox"
+                          Content="Use Staging"
+                          FontSize="11"
+                          Foreground="#888888"
+                          VerticalAlignment="Center"
+                          Checked="UseStagingCheckbox_Changed"
+                          Unchecked="UseStagingCheckbox_Changed"/>
+            </StackPanel>
+        </StackPanel>
 
         <!-- Email -->
-        <StackPanel Grid.Row="1" Margin="0,0,0,15">
+        <StackPanel Grid.Row="2" Margin="0,0,0,15">
             <TextBlock Text="Email" FontWeight="SemiBold" Margin="0,0,0,5"/>
             <TextBox x:Name="EmailTextBox"
                      Height="35"
@@ -38,7 +58,7 @@
         </StackPanel>
 
         <!-- Password -->
-        <StackPanel Grid.Row="2" Margin="0,0,0,15">
+        <StackPanel Grid.Row="3" Margin="0,0,0,15">
             <TextBlock Text="Password" FontWeight="SemiBold" Margin="0,0,0,5"/>
             <PasswordBox x:Name="PasswordBox"
                          Height="35"
@@ -50,7 +70,7 @@
 
         <!-- Error Message -->
         <TextBlock x:Name="ErrorMessage"
-                   Grid.Row="3"
+                   Grid.Row="4"
                    Foreground="Red"
                    TextWrapping="Wrap"
                    Visibility="Collapsed"
@@ -58,7 +78,7 @@
 
         <!-- Loading Indicator -->
         <StackPanel x:Name="LoadingPanel"
-                    Grid.Row="4"
+                    Grid.Row="5"
                     Orientation="Horizontal"
                     Visibility="Collapsed"
                     Margin="0,0,0,10">
@@ -66,7 +86,7 @@
         </StackPanel>
 
         <!-- Buttons -->
-        <StackPanel Grid.Row="6"
+        <StackPanel Grid.Row="7"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right">
             <Button x:Name="CancelButton"
