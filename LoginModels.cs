@@ -48,7 +48,12 @@ namespace NavisWebAppSync
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public BimLatestFile LatestFile { get; set; }
+
+        /// <summary>
+        /// Array of files in this folder (API returns files[], not latestFile)
+        /// </summary>
+        public List<BimLatestFile> Files { get; set; }
+
         public string Error { get; set; }
     }
 
