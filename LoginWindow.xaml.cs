@@ -13,9 +13,14 @@ namespace NavisWebAppSync
         public DateTime TokenExpiry { get; private set; }
         public int UserId { get; private set; }
 
+        private BinaConfig _config;
+
         public LoginWindow()
         {
             InitializeComponent();
+            _config = BinaConfig.Load();
+            UseStagingCheckbox.IsChecked = _config.UseStaging;
+            UpdateEnvironmentDisplay();
             EmailTextBox.Focus();
         }
 
@@ -26,6 +31,23 @@ namespace NavisWebAppSync
                 EmailTextBox.Text = prefillEmail;
                 PasswordBox.Focus();
             }
+        }
+
+        private void UseStagingCheckbox_Changed(object sender, RoutedEventArgs e)
+        {
+            _config.UseStaging = UseStagingCheckbox.IsChecked ?? false;
+            _config.Save();
+            BinaApiService.ClearUrlCache();
+            UpdateEnvironmentDisplay();
+        }
+
+        private void UpdateEnvironmentDisplay()
+        {
+            bool isStaging = _config.UseStaging;
+            EnvironmentText.Text = isStaging ? "Staging" : "Production";
+            EnvironmentText.Foreground = isStaging
+                ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 152, 0))  // Orange
+                : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(76, 175, 80)); // Green
         }
 
         private async void LoginButton_Click(object sender, RoutedEventArgs e)
