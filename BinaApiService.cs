@@ -10,13 +10,28 @@ namespace NavisWebAppSync
 {
     public class BinaApiService
     {
+        // Cached base URL - loaded once, cleared on environment change
+        private static string _cachedBaseUrl = null;
+
         /// <summary>
-        /// Get the API base URL from config (staging or production)
+        /// Get the API base URL from config (cached to avoid repeated disk reads)
         /// </summary>
         private static string GetBaseUrl()
         {
-            var config = BinaConfig.Load();
-            return config.GetApiBaseUrl();
+            if (_cachedBaseUrl == null)
+            {
+                var config = BinaConfig.Load();
+                _cachedBaseUrl = config.GetApiBaseUrl();
+            }
+            return _cachedBaseUrl;
+        }
+
+        /// <summary>
+        /// Clear cached base URL (call when environment changes)
+        /// </summary>
+        public static void ClearUrlCache()
+        {
+            _cachedBaseUrl = null;
         }
 
         /// <summary>

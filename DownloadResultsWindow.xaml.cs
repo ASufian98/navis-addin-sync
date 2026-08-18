@@ -53,6 +53,11 @@ namespace NavisWebAppSync
                             {
                                 filesToDownload.Add((disciplineName, folder.Name, file, null));
                             }
+                            else if (file != null)
+                            {
+                                // File exists but no download URL - show in UI
+                                filesToDownload.Add((disciplineName, folder.Name, null, $"No download URL for {file.FileName ?? "file"}"));
+                            }
                         }
                     }
                 }

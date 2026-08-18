@@ -67,12 +67,12 @@
         <StackPanel Grid.Row="5" Margin="0,0,0,15">
             <TextBlock Text="Environment" FontWeight="SemiBold" Foreground="#666666" FontSize="12"/>
             <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                <CheckBox x:Name="UseProductionCheckbox"
-                          Content="Use Production"
+                <CheckBox x:Name="UseStagingCheckbox"
+                          Content="Use Staging (for testing)"
                           FontSize="14"
                           VerticalAlignment="Center"
-                          Checked="UseProductionCheckbox_Changed"
-                          Unchecked="UseProductionCheckbox_Changed"/>
+                          Checked="UseStagingCheckbox_Changed"
+                          Unchecked="UseStagingCheckbox_Changed"/>
                 <TextBlock x:Name="EnvironmentUrlText"
                            FontSize="12"
                            Foreground="#888888"

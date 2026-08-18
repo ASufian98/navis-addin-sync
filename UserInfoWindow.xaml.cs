@@ -24,15 +24,37 @@ namespace NavisWebAppSync
                 : "All Disciplines";
 
             // Set environment toggle
-            UseProductionCheckbox.IsChecked = config.UseProduction;
+            UseStagingCheckbox.IsChecked = config.UseStaging;
             UpdateEnvironmentUrl();
         }
 
-        private void UseProductionCheckbox_Changed(object sender, RoutedEventArgs e)
+        private void UseStagingCheckbox_Changed(object sender, RoutedEventArgs e)
         {
-            _config.UseProduction = UseProductionCheckbox.IsChecked ?? false;
-            _config.Save();
-            UpdateEnvironmentUrl();
+            bool newValue = UseStagingCheckbox.IsChecked ?? false;
+            if (newValue != _config.UseStaging)
+            {
+                var result = MessageBox.Show(
+                    "Changing environment will log you out.\nContinue?",
+                    "Environment Change",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    _config.UseStaging = newValue;
+                    _config.ClearSession();
+                    _config.Save();
+                    BinaApiService.ClearUrlCache();
+                    LoggedOut = true;
+                    DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    // Revert checkbox
+                    UseStagingCheckbox.IsChecked = _config.UseStaging;
+                }
+            }
         }
 
         private void UpdateEnvironmentUrl()
