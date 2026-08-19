@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NavisWebAppSync")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5198a410f410137c2d296a7a685afb3ef2b8a98f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4a94303bf970d28f25ca01a202744e287c6d228c")]
 [assembly: System.Reflection.AssemblyProductAttribute("NavisWebAppSync")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NavisWebAppSync")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -44,9 +44,21 @@ namespace NavisWebAppSync
                     {
                         filesToDownload.Add((disciplineName, folder.Name, null, folder.Error));
                     }
-                    else if (folder.LatestFile != null && !string.IsNullOrEmpty(folder.LatestFile.FileUrl))
+                    else if (folder.Files != null && folder.Files.Count > 0)
                     {
-                        filesToDownload.Add((disciplineName, folder.Name, folder.LatestFile, null));
+                        // Add all files in the folder (API returns files array)
+                        foreach (var file in folder.Files)
+                        {
+                            if (file != null && !string.IsNullOrEmpty(file.FileUrl))
+                            {
+                                filesToDownload.Add((disciplineName, folder.Name, file, null));
+                            }
+                            else if (file != null)
+                            {
+                                // File exists but no download URL - show in UI
+                                filesToDownload.Add((disciplineName, folder.Name, null, $"No download URL for {file.FileName ?? "file"}"));
+                            }
+                        }
                     }
                 }
             }
