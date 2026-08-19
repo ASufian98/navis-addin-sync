@@ -10,7 +10,10 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <!-- Navisworks install location. Override with -p:NavisworksPath=... ; otherwise probe known install dirs. -->
   <PropertyGroup>
+    <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2026\Autodesk.Navisworks.Api.dll')">C:\Program Files\Autodesk\Navisworks Manage 2026</NavisworksPath>
+    <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('D:\Naviswork\Navisworks Manage 2026\Autodesk.Navisworks.Api.dll')">D:\Naviswork\Navisworks Manage 2026</NavisworksPath>
     <NavisworksPath Condition="'$(NavisworksPath)' == ''">C:\Program Files\Autodesk\Navisworks Manage 2026</NavisworksPath>
   </PropertyGroup>
 

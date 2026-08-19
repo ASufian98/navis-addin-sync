@@ -42,6 +42,16 @@ namespace NavisWebAppSync
         public string FileName { get; set; }
         public string FileUrl { get; set; }
         public string Version { get; set; }
+
+        /// <summary>
+        /// "nwc" | "rvt" | ... The backend falls back to the source .rvt when no .nwc is linked.
+        /// </summary>
+        public string FileType { get; set; }
+
+        /// <summary>
+        /// Per-file error. The backend reports errors here, not on the folder.
+        /// </summary>
+        public string Error { get; set; }
     }
 
     public class BimDisciplineFolder
@@ -54,6 +64,10 @@ namespace NavisWebAppSync
         /// </summary>
         public List<BimLatestFile> Files { get; set; }
 
+        /// <summary>
+        /// Legacy folder-level error. Errors now arrive per file on <see cref="BimLatestFile.Error"/>;
+        /// kept so a folder-scoped message is still surfaced instead of silently dropped.
+        /// </summary>
         public string Error { get; set; }
     }
 

@@ -27,11 +27,20 @@ namespace NavisWebAppSync
         // Environment setting (production by default, staging for testing)
         public bool UseStaging { get; set; } = false;
 
+        // Temporary dev tunnel override. Set to an ngrok/tunnel URL to point the addin at a
+        // local backend; leave null for normal staging/production routing.
+        private const string DevTunnelUrl = null;
+
         /// <summary>
         /// Returns the API base URL based on environment setting
         /// </summary>
         public string GetApiBaseUrl()
         {
+            if (!string.IsNullOrEmpty(DevTunnelUrl))
+            {
+                return DevTunnelUrl;
+            }
+
             return UseStaging
                 ? "https://api-stg.binacloud.ai"
                 : "https://api.binacloud.ai";

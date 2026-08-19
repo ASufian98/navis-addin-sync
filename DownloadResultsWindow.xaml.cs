@@ -26,10 +26,76 @@ namespace NavisWebAppSync
             Loaded += async (s, e) => await StartDownloadAsync();
         }
 
-        private List<(string DisciplineType, string FolderName, BimLatestFile File, string Error)> GetFilesToDownload(
-            BimDisciplineResponse disciplineFiles)
+        /// <summary>
+        /// Presigned URLs expire after 1h (OBS_EXPIRY_TIME=3600). Re-fetch the list before
+        /// they go stale if a large multi-folder pull is still running.
+        /// </summary>
+        private static readonly TimeSpan UrlRefreshAfter = TimeSpan.FromMinutes(45);
+
+        private DateTime _listFetchedAtUtc;
+
+        /// <summary>
+        /// One row in the results list: either a downloadable file or an explicit notice.
+        /// </summary>
+        private class PullEntry
         {
-            var filesToDownload = new List<(string DisciplineType, string FolderName, BimLatestFile File, string Error)>();
+            public string DisciplineType;
+            public string FolderName;
+            public BimLatestFile File;    // null when there is nothing to download
+            public string DisplayName;    // shown in the FileName column
+            public string Error;          // non-null => notice row, never downloaded
+        }
+
+        private static string EntryKey(PullEntry entry)
+        {
+            return string.Join("|",
+                entry.DisciplineType,
+                entry.FolderName,
+                entry.File?.Id.ToString() ?? "-",
+                entry.File?.FileName ?? "-");
+        }
+
+        private static string FileTypeOf(BimLatestFile file)
+        {
+            string type = file?.FileType;
+            if (string.IsNullOrEmpty(type))
+            {
+                type = Path.GetExtension(file?.FileName ?? "").TrimStart('.');
+            }
+            return type ?? "";
+        }
+
+        /// <summary>
+        /// True when the backend returned the source .rvt because no .nwc was linked.
+        /// </summary>
+        private static bool IsRevitFallback(BimLatestFile file)
+        {
+            string type = FileTypeOf(file);
+            return !string.IsNullOrEmpty(type)
+                && !type.Equals("nwc", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string FileTypeLabel(BimLatestFile file)
+        {
+            string type = FileTypeOf(file);
+            return string.IsNullOrEmpty(type) ? "" : type.ToUpperInvariant();
+        }
+
+        private List<PullEntry> GetFilesToDownload(BimDisciplineResponse disciplineFiles)
+        {
+            var filesToDownload = new List<PullEntry>();
+
+            void AddNotice(string disciplineName, string folderName, string displayName, string error)
+            {
+                filesToDownload.Add(new PullEntry
+                {
+                    DisciplineType = disciplineName,
+                    FolderName = folderName,
+                    File = null,
+                    DisplayName = displayName,
+                    Error = error
+                });
+            }
 
             void AddDisciplineFiles(string disciplineName, BimDiscipline discipline)
             {
@@ -39,26 +105,47 @@ namespace NavisWebAppSync
                 {
                     if (folder == null) continue;
 
-                    // Check if there's an error (no .nwc file linked)
-                    if (!string.IsNullOrEmpty(folder.Error))
+                    if (folder.Files != null && folder.Files.Count > 0)
                     {
-                        filesToDownload.Add((disciplineName, folder.Name, null, folder.Error));
-                    }
-                    else if (folder.Files != null && folder.Files.Count > 0)
-                    {
-                        // Add all files in the folder (API returns files array)
                         foreach (var file in folder.Files)
                         {
-                            if (file != null && !string.IsNullOrEmpty(file.FileUrl))
+                            if (file == null)
                             {
-                                filesToDownload.Add((disciplineName, folder.Name, file, null));
+                                AddNotice(disciplineName, folder.Name, "(empty entry)",
+                                    "Server returned an empty file entry.");
                             }
-                            else if (file != null)
+                            else if (!string.IsNullOrEmpty(file.Error))
                             {
-                                // File exists but no download URL - show in UI
-                                filesToDownload.Add((disciplineName, folder.Name, null, $"No download URL for {file.FileName ?? "file"}"));
+                                // Errors are reported per file by the backend, not per folder.
+                                AddNotice(disciplineName, folder.Name, file.FileName ?? "(no file)", file.Error);
+                            }
+                            else if (string.IsNullOrEmpty(file.FileUrl))
+                            {
+                                AddNotice(disciplineName, folder.Name, file.FileName ?? "(no file)",
+                                    $"No download URL for {file.FileName ?? "file"}.");
+                            }
+                            else
+                            {
+                                filesToDownload.Add(new PullEntry
+                                {
+                                    DisciplineType = disciplineName,
+                                    FolderName = folder.Name,
+                                    File = file,
+                                    DisplayName = file.FileName,
+                                    Error = null
+                                });
                             }
                         }
+                    }
+                    else if (!string.IsNullOrEmpty(folder.Error))
+                    {
+                        AddNotice(disciplineName, folder.Name, "(no file)", folder.Error);
+                    }
+                    else
+                    {
+                        // Never skip silently - an empty pull has to be visible in the UI.
+                        AddNotice(disciplineName, folder.Name, "(no file)",
+                            "Server returned no files for this folder.");
                     }
                 }
             }
@@ -69,6 +156,39 @@ namespace NavisWebAppSync
             AddDisciplineFiles("Electrical", disciplineFiles.Electrical);
 
             return filesToDownload;
+        }
+
+        /// <summary>
+        /// Re-fetch the list and swap in fresh presigned URLs for entries not downloaded yet.
+        /// </summary>
+        private async Task RefreshUrlsAsync(List<PullEntry> entries)
+        {
+            var fresh = await BinaApiService.GetBimDisciplineFilesAsync(
+                _config.ProjectId, _config.AccessToken);
+
+            if (fresh == null) return;
+
+            var freshUrls = new Dictionary<string, string>();
+            foreach (var entry in GetFilesToDownload(fresh))
+            {
+                if (entry.File != null && !string.IsNullOrEmpty(entry.File.FileUrl))
+                {
+                    freshUrls[EntryKey(entry)] = entry.File.FileUrl;
+                }
+            }
+
+            foreach (var entry in entries)
+            {
+                if (entry.File == null) continue;
+
+                string url;
+                if (freshUrls.TryGetValue(EntryKey(entry), out url))
+                {
+                    entry.File.FileUrl = url;
+                }
+            }
+
+            _listFetchedAtUtc = DateTime.UtcNow;
         }
 
         private async Task StartDownloadAsync()
@@ -91,44 +211,50 @@ namespace NavisWebAppSync
                     return;
                 }
 
+                _listFetchedAtUtc = DateTime.UtcNow;
+
                 var filesToDownload = GetFilesToDownload(disciplineFiles);
 
                 if (filesToDownload.Count == 0)
                 {
                     HeaderText.Text = "No Files Available";
                     HeaderText.Foreground = System.Windows.Media.Brushes.Orange;
-                    ProgressText.Text = "No discipline files found for this project.";
+                    ProgressText.Text = "Server returned no discipline folders for this project.";
                     ProgressBar.IsIndeterminate = false;
                     CloseButton.IsEnabled = true;
                     return;
                 }
 
                 // Initialize download items
-                int errorCount = 0;
-                foreach (var (type, folderName, file, error) in filesToDownload)
+                int noticeCount = 0;
+                foreach (var entry in filesToDownload)
                 {
-                    if (!string.IsNullOrEmpty(error))
+                    if (entry.Error != null)
                     {
-                        // This folder has no .nwc file linked - show error immediately
                         _downloadItems.Add(new DownloadItemViewModel
                         {
-                            DisciplineType = $"{type} / {folderName}",
-                            FileName = "(No NWC linked)",
+                            DisciplineType = $"{entry.DisciplineType} / {entry.FolderName}",
+                            FileName = entry.DisplayName,
                             StatusIcon = "✗",
                             StatusColor = System.Windows.Media.Brushes.Red,
-                            StatusText = error
+                            StatusText = entry.Error
                         });
-                        errorCount++;
+                        noticeCount++;
                     }
                     else
                     {
+                        string label = FileTypeLabel(entry.File);
                         _downloadItems.Add(new DownloadItemViewModel
                         {
-                            DisciplineType = $"{type} / {folderName}",
-                            FileName = file.FileName,
+                            DisciplineType = $"{entry.DisciplineType} / {entry.FolderName}",
+                            FileName = string.IsNullOrEmpty(label)
+                                ? entry.DisplayName
+                                : $"{entry.DisplayName} [{label}]",
                             StatusIcon = "•",
                             StatusColor = System.Windows.Media.Brushes.Gray,
-                            StatusText = "Waiting..."
+                            StatusText = IsRevitFallback(entry.File)
+                                ? "Waiting... (RVT fallback, no NWC linked)"
+                                : "Waiting..."
                         });
                     }
                 }
@@ -142,36 +268,50 @@ namespace NavisWebAppSync
 
                 int successCount = 0;
                 int failCount = 0;
+                int fallbackCount = 0;
                 int downloadIndex = 0;
 
                 for (int i = 0; i < filesToDownload.Count; i++)
                 {
-                    var (type, folderName, file, error) = filesToDownload[i];
+                    var entry = filesToDownload[i];
                     var item = _downloadItems[i];
 
-                    // Skip items with errors (already marked)
-                    if (!string.IsNullOrEmpty(error))
+                    // Notice rows are already marked and have nothing to download.
+                    if (entry.Error != null)
                     {
-                        failCount++;
                         continue;
                     }
+
+                    // Presigned URLs expire after an hour - refresh before they go stale.
+                    if (DateTime.UtcNow - _listFetchedAtUtc > UrlRefreshAfter)
+                    {
+                        ProgressText.Text = "Refreshing download links...";
+                        await RefreshUrlsAsync(filesToDownload);
+                    }
+
+                    bool isFallback = IsRevitFallback(entry.File);
 
                     downloadIndex++;
                     item.StatusIcon = "↓";
                     item.StatusColor = System.Windows.Media.Brushes.DodgerBlue;
-                    item.StatusText = $"Downloading {file.FileName}...";
-                    ProgressText.Text = $"Downloading {type} / {folderName} ({downloadIndex}/{downloadableFiles.Count})...";
+                    item.StatusText = $"Downloading {entry.File.FileName}...";
+                    ProgressText.Text = $"Downloading {entry.DisciplineType} / {entry.FolderName} ({downloadIndex}/{downloadableFiles.Count})...";
 
-                    string disciplineFolder = Path.Combine(_downloadPath, type, folderName);
+                    string disciplineFolder = Path.Combine(_downloadPath, entry.DisciplineType, entry.FolderName);
                     string result = await BinaApiService.DownloadFileAsync(
-                        file.FileUrl, disciplineFolder, file.FileName);
+                        entry.File.FileUrl, disciplineFolder, entry.File.FileName);
 
                     if (!string.IsNullOrEmpty(result))
                     {
+                        // Navisworks opens .rvt directly through its Revit file reader, so the
+                        // backend's .rvt fallback is a success - noted in the text, not flagged.
                         item.StatusIcon = "✓";
                         item.StatusColor = System.Windows.Media.Brushes.Green;
-                        item.StatusText = result;
+                        item.StatusText = isFallback
+                            ? $"{result} (RVT fallback, no NWC linked)"
+                            : result;
                         successCount++;
+                        if (isFallback) fallbackCount++;
                     }
                     else
                     {
@@ -185,7 +325,7 @@ namespace NavisWebAppSync
                 }
 
                 // Update final status
-                if (failCount == 0 && successCount > 0)
+                if (failCount == 0 && noticeCount == 0 && successCount > 0)
                 {
                     HeaderText.Text = "Download Complete";
                     HeaderText.Foreground = System.Windows.Media.Brushes.Green;
@@ -202,10 +342,12 @@ namespace NavisWebAppSync
                 }
 
                 string statusText = $"Completed: {successCount} successful";
+                if (fallbackCount > 0)
+                    statusText += $" ({fallbackCount} RVT fallback)";
                 if (failCount > 0)
-                    statusText += $", {failCount - errorCount} failed";
-                if (errorCount > 0)
-                    statusText += $", {errorCount} missing NWC";
+                    statusText += $", {failCount} failed";
+                if (noticeCount > 0)
+                    statusText += $", {noticeCount} unavailable";
                 ProgressText.Text = statusText;
                 SummaryText.Text = $"Files saved to: {_downloadPath}";
                 CloseButton.IsEnabled = true;
