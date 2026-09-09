@@ -252,9 +252,10 @@ namespace NavisWebAppSync
                     return 0;
                 }
 
-                // Default download root
+                // Download root: use LastDownloadPath if set (via Choose Path), else Desktop/BINA_Downloads
+                // Don't update this from downloaded file path - that causes nesting
                 string downloadRoot = config.LastDownloadPath;
-                if (string.IsNullOrEmpty(downloadRoot))
+                if (string.IsNullOrEmpty(downloadRoot) || !Directory.Exists(downloadRoot))
                 {
                     downloadRoot = Path.Combine(
                         Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
@@ -269,10 +270,6 @@ namespace NavisWebAppSync
 
                     if (result == true && !string.IsNullOrEmpty(browser.DownloadedPath))
                     {
-                        // Update last download path
-                        config.LastDownloadPath = Path.GetDirectoryName(browser.DownloadedPath);
-                        config.Save();
-
                         // Reveal in explorer
                         try
                         {
