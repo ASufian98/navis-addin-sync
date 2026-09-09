@@ -16,6 +16,7 @@ namespace NavisWebAppSync
     {
         private readonly SyncApiClient _api;
         private readonly int _projectId;
+        private readonly string _projectName;
         private readonly string _downloadRoot;
 
         private CancellationTokenSource _cancellation;
@@ -35,6 +36,7 @@ namespace NavisWebAppSync
 
             _api = api;
             _projectId = projectId;
+            _projectName = projectName;
             _downloadRoot = downloadRoot;
 
             if (!string.IsNullOrWhiteSpace(projectName))
@@ -540,9 +542,13 @@ namespace NavisWebAppSync
                 ? "v" + version.VersionNumber.Value
                 : "v" + version.DesignId;
 
+            string projectFolder = !string.IsNullOrWhiteSpace(_projectName)
+                ? SafeName(_projectName)
+                : "project-" + _projectId;
+
             return Path.Combine(
                 _downloadRoot,
-                "project-" + _projectId,
+                projectFolder,
                 BimArea.Label(_area),
                 folderName,
                 stem + "-" + versionTag + ext);
