@@ -45,20 +45,30 @@
     <None Include="BinaRibbon.xaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Resources\*.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
-  <!-- Post-build: Copy DLL and XAML to Navisworks Plugins subfolder (requires admin rights) -->
+  <!-- Post-build: Copy DLL, XAML, and Resources to Navisworks Plugins subfolder (requires admin rights) -->
   <Target Name="PostBuild" AfterTargets="Build">
     <MakeDir Directories="$(NavisworksPath)\Plugins\NavisWebAppSync\" ContinueOnError="true" />
+    <MakeDir Directories="$(NavisworksPath)\Plugins\NavisWebAppSync\Resources\" ContinueOnError="true" />
     <Copy SourceFiles="$(TargetPath)"
           DestinationFolder="$(NavisworksPath)\Plugins\NavisWebAppSync\"
           ContinueOnError="true" />
     <Copy SourceFiles="$(TargetDir)BinaRibbon.xaml"
           DestinationFolder="$(NavisworksPath)\Plugins\NavisWebAppSync\"
+          ContinueOnError="true" />
+    <ItemGroup>
+      <ResourcePngs Include="$(TargetDir)Resources\*.png" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ResourcePngs)"
+          DestinationFolder="$(NavisworksPath)\Plugins\NavisWebAppSync\Resources\"
           ContinueOnError="true" />
     <Message Text="Build complete. Copy to $(NavisworksPath)\Plugins\NavisWebAppSync\" Importance="high" />
   </Target>

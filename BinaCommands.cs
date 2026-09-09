@@ -60,7 +60,7 @@ namespace NavisWebAppSync
 
     // Button command - Login To Bina (1st)
     [Plugin("BINA.01_Login", "ACAP", DisplayName = "Login To Bina", ToolTip = "Login to BINA Cloud")]
-    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\Ribbon_Cloud_16.ico", LargeIcon = "..\\..\\Images\\Ribbon_Cloud_32.ico")]
+    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "Resources\\login.png", LargeIcon = "Resources\\login.png")]
     public class LoginCommand : AddInPlugin
     {
         public override int Execute(params string[] parameters)
@@ -167,7 +167,7 @@ namespace NavisWebAppSync
 
     // Button command - Choose Download Path (2nd)
     [Plugin("BINA.02_ChoosePath", "ACAP", DisplayName = "Choose Path", ToolTip = "Choose the folder path for downloads")]
-    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\FoldersIcon.ico", LargeIcon = "..\\..\\Images\\FoldersIcon.ico")]
+    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "Resources\\folder.png", LargeIcon = "Resources\\folder.png")]
     public class ChoosePathCommand : AddInPlugin
     {
         public override int Execute(params string[] parameters)
@@ -221,7 +221,7 @@ namespace NavisWebAppSync
 
     // Button command - Pull Latest Files (3rd)
     [Plugin("BINA.03_PullLatestFiles", "ACAP", DisplayName = "Pull Latest Files", ToolTip = "Pull the latest files from BINA Cloud")]
-    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\Ribbon_Refresh_16.ico", LargeIcon = "..\\..\\Images\\Ribbon_Refresh_32.ico")]
+    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "Resources\\download.png", LargeIcon = "Resources\\download.png")]
     public class PullLatestFilesCommand : AddInPlugin
     {
         public override int Execute(params string[] parameters)
@@ -282,7 +282,7 @@ namespace NavisWebAppSync
 
     // Button command - Upload Latest Report (4th)
     [Plugin("BINA.04_UploadLatestReport", "ACAP", DisplayName = "Upload Clash Report", ToolTip = "Upload clash detection report to BINA Cloud")]
-    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\Ribbon_Send_16.ico", LargeIcon = "..\\..\\Images\\Ribbon_Send_32.ico")]
+    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "Resources\\upload.png", LargeIcon = "Resources\\upload.png")]
     public class UploadLatestReportCommand : AddInPlugin
     {
         public override int Execute(params string[] parameters)
