@@ -219,8 +219,8 @@ namespace NavisWebAppSync
         }
     }
 
-    // Button command - Pull Latest Files (3rd)
-    [Plugin("BINA.03_PullLatestFiles", "ACAP", DisplayName = "Pull Latest Files", ToolTip = "Pull the latest files from BINA Cloud")]
+    // Button command - Download Model (3rd)
+    [Plugin("BINA.03_PullLatestFiles", "ACAP", DisplayName = "Download Model", ToolTip = "Browse and download models from BINA Cloud")]
     [AddInPluginAttribute(AddInLocation.AddIn, Icon = "Resources\\download.png", LargeIcon = "Resources\\download.png")]
     public class PullLatestFilesCommand : AddInPlugin
     {
@@ -241,30 +241,46 @@ namespace NavisWebAppSync
                     return 0;
                 }
 
-                // Get or set download path
-                string downloadPath = config.LastDownloadPath;
-                if (string.IsNullOrEmpty(downloadPath) || !Directory.Exists(downloadPath))
+                // Check if project is selected
+                if (config.ProjectId <= 0)
                 {
-                    // Show folder picker
-                    using (var dialog = new FolderBrowserDialog())
-                    {
-                        dialog.Description = "Select folder to save downloaded files";
-                        dialog.ShowNewFolderButton = true;
-
-                        if (dialog.ShowDialog() != DialogResult.OK)
-                        {
-                            return 0; // User cancelled
-                        }
-
-                        downloadPath = dialog.SelectedPath;
-                        config.LastDownloadPath = downloadPath;
-                        config.Save();
-                    }
+                    MessageBox.Show(
+                        "Please select a project first (via Login button).",
+                        "No Project Selected",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return 0;
                 }
 
-                // Show download results window
-                var downloadWindow = new DownloadResultsWindow(config, downloadPath);
-                downloadWindow.ShowDialog();
+                // Default download root
+                string downloadRoot = config.LastDownloadPath;
+                if (string.IsNullOrEmpty(downloadRoot))
+                {
+                    downloadRoot = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                        "BINA_Downloads");
+                }
+
+                // Show model browser
+                using (var api = new SyncApiClient(config.GetApiBaseUrl(), config.AccessToken))
+                {
+                    var browser = new ModelBrowserWindow(api, config.ProjectId, config.ProjectName, downloadRoot);
+                    bool? result = browser.ShowDialog();
+
+                    if (result == true && !string.IsNullOrEmpty(browser.DownloadedPath))
+                    {
+                        // Update last download path
+                        config.LastDownloadPath = Path.GetDirectoryName(browser.DownloadedPath);
+                        config.Save();
+
+                        // Reveal in explorer
+                        try
+                        {
+                            System.Diagnostics.Process.Start("explorer.exe", "/select,\"" + browser.DownloadedPath + "\"");
+                        }
+                        catch { }
+                    }
+                }
 
                 return 0;
             }
