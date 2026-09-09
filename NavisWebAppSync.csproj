@@ -10,10 +10,18 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
-  <!-- Navisworks install location. Override with -p:NavisworksPath=... ; otherwise probe known install dirs. -->
+  <!-- Navisworks install location. Override with -p:NavisworksPath=... ; otherwise probe known install dirs (2027 → 2026 → 2025). -->
   <PropertyGroup>
+    <!-- 2027 -->
+    <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2027\Autodesk.Navisworks.Api.dll')">C:\Program Files\Autodesk\Navisworks Manage 2027</NavisworksPath>
+    <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('D:\Naviswork\Navisworks Manage 2027\Autodesk.Navisworks.Api.dll')">D:\Naviswork\Navisworks Manage 2027</NavisworksPath>
+    <!-- 2026 -->
     <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2026\Autodesk.Navisworks.Api.dll')">C:\Program Files\Autodesk\Navisworks Manage 2026</NavisworksPath>
     <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('D:\Naviswork\Navisworks Manage 2026\Autodesk.Navisworks.Api.dll')">D:\Naviswork\Navisworks Manage 2026</NavisworksPath>
+    <!-- 2025 -->
+    <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2025\Autodesk.Navisworks.Api.dll')">C:\Program Files\Autodesk\Navisworks Manage 2025</NavisworksPath>
+    <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('D:\Naviswork\Navisworks Manage 2025\Autodesk.Navisworks.Api.dll')">D:\Naviswork\Navisworks Manage 2025</NavisworksPath>
+    <!-- Fallback -->
     <NavisworksPath Condition="'$(NavisworksPath)' == ''">C:\Program Files\Autodesk\Navisworks Manage 2026</NavisworksPath>
   </PropertyGroup>
 
