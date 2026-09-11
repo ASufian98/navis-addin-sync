@@ -30,12 +30,12 @@ namespace NavisWebAppSync
 
         private void UseStagingCheckbox_Changed(object sender, RoutedEventArgs e)
         {
-            // No-op: environment is now compile-time
+            // No-op: environment is compile-time (handler kept for XAML binding)
         }
 
         private void UpdateEnvironmentUrl()
         {
-            EnvironmentUrlText.Text = $"{BinaConfig.Channel}\n{_config.GetApiBaseUrl()}";
+            EnvironmentUrlText.Text = $"{BinaConfig.ChannelDescription}\n{_config.GetApiBaseUrl()}";
         }
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)

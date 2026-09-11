@@ -37,16 +37,24 @@ namespace NavisWebAppSync
             new Lazy<Dictionary<string, string>>(LoadEnv);
 
         /// <summary>
-        /// Build channel identifier for diagnostics.
+        /// Build environment (compile-time).
         /// </summary>
-        public static string Channel =>
+        public static BuildChannel Channel =>
 #if DEBUG
-            "Debug (.env.local)";
+            BuildChannel.Debug;
 #elif STAGING
-            "Staging (.env.staging)";
+            BuildChannel.Staging;
 #else
-            "Release (.env.production)";
+            BuildChannel.Release;
 #endif
+
+        /// <summary>
+        /// Human-readable channel description for diagnostics.
+        /// </summary>
+        public static string ChannelDescription =>
+            Channel == BuildChannel.Debug ? "Debug (.env.local)" :
+            Channel == BuildChannel.Staging ? "Staging (.env.staging)" :
+            "Release (.env.production)";
 
         private static Dictionary<string, string> LoadEnv()
         {
@@ -118,7 +126,7 @@ namespace NavisWebAppSync
         /// Diagnostic summary of resolved endpoints.
         /// </summary>
         public string DescribeEndpoints() =>
-            "channel    : " + Channel + "\n" +
+            "channel    : " + ChannelDescription + "\n" +
             "API base   : " + GetApiBaseUrl() + "\n" +
             "cloud web  : " + GetCloudWebUrl() + "\n" +
             "update feed: " + (string.IsNullOrEmpty(GetUpdateFeedUrl()) ? "(disabled)" : GetUpdateFeedUrl());
@@ -210,5 +218,15 @@ namespace NavisWebAppSync
             ProjectId = 0;
             UserId = 0;
         }
+    }
+
+    /// <summary>
+    /// Build environment channels.
+    /// </summary>
+    public enum BuildChannel
+    {
+        Debug,
+        Staging,
+        Release
     }
 }

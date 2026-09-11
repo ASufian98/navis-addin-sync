@@ -36,29 +36,26 @@ namespace NavisWebAppSync
 
         private void UseStagingCheckbox_Changed(object sender, RoutedEventArgs e)
         {
-            // No-op: environment is now compile-time
+            // No-op: environment is compile-time (handler kept for XAML binding)
         }
 
         private void UpdateEnvironmentDisplay()
         {
-            // Environment is compile-time; show channel info
-            bool isStaging = BinaConfig.Channel.Contains("Staging");
-            bool isDebug = BinaConfig.Channel.Contains("Debug");
-
-            if (isDebug)
+            switch (BinaConfig.Channel)
             {
-                EnvironmentText.Text = "Development";
-                EnvironmentText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(33, 150, 243)); // Blue
-            }
-            else if (isStaging)
-            {
-                EnvironmentText.Text = "Staging";
-                EnvironmentText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 152, 0)); // Orange
-            }
-            else
-            {
-                EnvironmentText.Text = "Production";
-                EnvironmentText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(76, 175, 80)); // Green
+                case BuildChannel.Debug:
+                    EnvironmentText.Text = "Development";
+                    EnvironmentText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(33, 150, 243)); // Blue
+                    break;
+                case BuildChannel.Staging:
+                    EnvironmentText.Text = "Staging";
+                    EnvironmentText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 152, 0)); // Orange
+                    break;
+                case BuildChannel.Release:
+                default:
+                    EnvironmentText.Text = "Production";
+                    EnvironmentText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(76, 175, 80)); // Green
+                    break;
             }
         }
 
