@@ -50,13 +50,8 @@ namespace NavisWebAppSync
 
         private static Dictionary<string, string> LoadEnv()
         {
-#if DEBUG
-            const string resource = "env.local";
-#elif STAGING
-            const string resource = "env.staging";
-#else
-            const string resource = "env.production";
-#endif
+            // csproj embeds the correct env file as "env" per configuration
+            const string resource = "env";
             try
             {
                 using (var stream = Assembly.GetExecutingAssembly()

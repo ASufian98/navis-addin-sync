@@ -57,13 +57,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Env files embedded so they travel inside the DLL. BinaConfig picks
-         .env.local on Debug, .env.staging on Staging, .env.production on
-         Release via #if DEBUG / #elif STAGING. LogicalName keeps the
-         leading-dot filename from mangling the manifest resource name. -->
-    <EmbeddedResource Include=".env.local" LogicalName="env.local" />
-    <EmbeddedResource Include=".env.staging" LogicalName="env.staging" />
-    <EmbeddedResource Include=".env.production" LogicalName="env.production" />
+    <!-- Embed ONLY the env file for this configuration. Each build carries
+         only its own URLs — no staging/localhost leak in production DLLs.
+         All three use the same LogicalName so BinaConfig.LoadEnv reads "env". -->
+    <EmbeddedResource Condition="'$(Configuration)' == 'Debug'" Include=".env.local" LogicalName="env" />
+    <EmbeddedResource Condition="'$(Configuration)' == 'Staging'" Include=".env.staging" LogicalName="env" />
+    <EmbeddedResource Condition="'$(Configuration)' == 'Release'" Include=".env.production" LogicalName="env" />
   </ItemGroup>
 
   <ItemGroup>
