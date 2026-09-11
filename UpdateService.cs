@@ -190,16 +190,17 @@ namespace NavisWebAppSync
                 }
 
                 progress?.Report((0.92, "Verifying..."));
-                if (!string.IsNullOrWhiteSpace(feed.Sha256))
+                // Fail closed: require SHA-256 hash for all updates
+                if (string.IsNullOrWhiteSpace(feed.Sha256))
+                    throw new InvalidOperationException("update rejected — feed missing SHA256 hash");
+
+                using (var file = File.OpenRead(zipPath))
+                using (var sha = SHA256.Create())
                 {
-                    using (var file = File.OpenRead(zipPath))
-                    using (var sha = SHA256.Create())
-                    {
-                        var hash = sha.ComputeHash(file);
-                        var actual = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-                        if (!actual.Equals(feed.Sha256, StringComparison.OrdinalIgnoreCase))
-                            throw new InvalidOperationException("download corrupted (SHA256 mismatch) — try again");
-                    }
+                    var hash = sha.ComputeHash(file);
+                    var actual = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                    if (!actual.Equals(feed.Sha256, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("download corrupted (SHA256 mismatch) — try again");
                 }
 
                 progress?.Report((0.95, "Installing..."));
@@ -254,7 +255,8 @@ namespace NavisWebAppSync
             {
                 Directory.CreateDirectory(Root);
                 File.AppendAllText(LogPath,
-                    $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [updater] {message}{Environment.NewLine}");
+                    $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [updater] {message}{Environment.NewLine}",
+                    System.Text.Encoding.UTF8);
             }
             catch { }
         }
