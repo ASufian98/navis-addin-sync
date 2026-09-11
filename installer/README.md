@@ -19,14 +19,18 @@ Produces in `artifacts/`:
    - `BinaNavisSync-X.Y.Z.zip`
    - `BinaNavisSync-X.Y.Z-setup.exe`
    - `version.json`
-4. Fleet updates at next Navisworks start
+4. Fleet notified at next Navisworks start
 
 ## OTA update flow
 
 The plugin checks `version.json` on GitHub Releases:
-- Newer version → download zip, verify SHA256, stage
-- `mandatory: true` → gates all commands until update staged
-- Applied at next Navisworks restart
+1. Newer version → download zip, verify SHA256, stage to AppData
+2. `mandatory: true` → gates all commands until update downloaded
+3. User prompted to close Navisworks and run installer to apply
+
+**Note**: Updates are staged to `%LocalAppData%\Bina\NavisSync\versions\<ver>\`
+but Navisworks loads from Program Files. The installer copies to both locations,
+so users must re-run the installer to apply staged updates. This requires admin.
 
 ## Manual install
 

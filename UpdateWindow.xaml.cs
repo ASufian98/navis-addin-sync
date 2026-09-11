@@ -67,8 +67,8 @@ namespace NavisWebAppSync
         private void ShowRestartState()
         {
             Progress.Visibility = Visibility.Collapsed;
-            StatusText.Text = "Update installed. Restart Navisworks to finish.";
-            UpdateButton.Content = "Close — restart Navisworks to apply";
+            StatusText.Text = "Update downloaded. Close Navisworks and run the installer to apply.";
+            UpdateButton.Content = "Close";
             UpdateButton.IsEnabled = true;
         }
     }

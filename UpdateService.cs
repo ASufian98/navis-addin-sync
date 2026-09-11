@@ -85,7 +85,7 @@ namespace NavisWebAppSync
             if (_staged)
             {
                 System.Windows.Forms.MessageBox.Show(
-                    $"Update {pending.Version} is installed.\n\nPlease restart Navisworks to continue using BINA Sync.",
+                    $"Update {pending.Version} is downloaded.\n\nPlease close Navisworks and run the installer to apply the update.",
                     "BINA Sync Update",
                     System.Windows.Forms.MessageBoxButtons.OK,
                     System.Windows.Forms.MessageBoxIcon.Information);

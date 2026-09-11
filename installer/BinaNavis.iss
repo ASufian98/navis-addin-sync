@@ -1,6 +1,6 @@
 ; BINA Navis Sync — Inno Setup installer
 ;
-; Per-user install (no admin needed). Double-click = progress bar = installed.
+; Requires admin (writes to Program Files). Double-click = progress bar = installed.
 ; Silent: BinaNavisSync-<ver>-setup.exe /VERYSILENT
 ;
 ; Build:
@@ -11,7 +11,7 @@
 ;     NavisWebAppSync.dll
 ;     BinaRibbon.xaml
 ;     Resources\*.png
-;   %LocalAppData%\Bina\NavisSync\versions\<ver>\  (same files, for OTA rollback)
+;   %LocalAppData%\Bina\NavisSync\versions\<ver>\  (same files, for OTA staging)
 
 #ifndef AppVersion
   #define AppVersion "0.0.0"
@@ -19,6 +19,9 @@
 #ifndef PluginDir
   #define PluginDir "..\bin\Release\net48"
 #endif
+
+; Navisworks version years to install to
+#define NavisYears "2027,2026,2025"
 
 [Setup]
 AppId={{7B2F9E31-8A54-4C6D-9E18-2D5A0C8B4F67}
@@ -42,33 +45,36 @@ Uninstallable=yes
 UninstallDisplayName=BINA Navis Sync
 
 [Files]
-; Install to versioned folder for OTA rollback support
+; Install to versioned folder for OTA staging/rollback
 Source: "{#PluginDir}\NavisWebAppSync.dll"; DestDir: "{localappdata}\Bina\NavisSync\versions\{#AppVersion}"; Flags: ignoreversion
 Source: "{#PluginDir}\BinaRibbon.xaml"; DestDir: "{localappdata}\Bina\NavisSync\versions\{#AppVersion}"; Flags: ignoreversion
 Source: "{#PluginDir}\Resources\*"; DestDir: "{localappdata}\Bina\NavisSync\versions\{#AppVersion}\Resources"; Flags: ignoreversion recursesubdirs
 Source: "{#PluginDir}\Newtonsoft.Json.dll"; DestDir: "{localappdata}\Bina\NavisSync\versions\{#AppVersion}"; Flags: ignoreversion
 
-; Try to install to Navisworks 2027/2026/2025 plugin folders (requires admin)
+; Install to Navisworks plugin folders (detected at runtime)
 ; 2027
-Source: "{#PluginDir}\NavisWebAppSync.dll"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2027\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{commonpf}\Autodesk\Navisworks Manage 2027'))
-Source: "{#PluginDir}\BinaRibbon.xaml"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2027\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{commonpf}\Autodesk\Navisworks Manage 2027'))
-Source: "{#PluginDir}\Resources\*"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2027\Plugins\NavisWebAppSync\Resources"; Flags: ignoreversion recursesubdirs; Check: DirExists(ExpandConstant('{commonpf}\Autodesk\Navisworks Manage 2027'))
-Source: "{#PluginDir}\Newtonsoft.Json.dll"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2027\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{commonpf}\Autodesk\Navisworks Manage 2027'))
+Source: "{#PluginDir}\NavisWebAppSync.dll"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2027\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: NavisInstalled('2027')
+Source: "{#PluginDir}\BinaRibbon.xaml"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2027\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: NavisInstalled('2027')
+Source: "{#PluginDir}\Resources\*"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2027\Plugins\NavisWebAppSync\Resources"; Flags: ignoreversion recursesubdirs; Check: NavisInstalled('2027')
+Source: "{#PluginDir}\Newtonsoft.Json.dll"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2027\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: NavisInstalled('2027')
 ; 2026
-Source: "{#PluginDir}\NavisWebAppSync.dll"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2026\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{commonpf}\Autodesk\Navisworks Manage 2026'))
-Source: "{#PluginDir}\BinaRibbon.xaml"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2026\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{commonpf}\Autodesk\Navisworks Manage 2026'))
-Source: "{#PluginDir}\Resources\*"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2026\Plugins\NavisWebAppSync\Resources"; Flags: ignoreversion recursesubdirs; Check: DirExists(ExpandConstant('{commonpf}\Autodesk\Navisworks Manage 2026'))
-Source: "{#PluginDir}\Newtonsoft.Json.dll"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2026\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{commonpf}\Autodesk\Navisworks Manage 2026'))
+Source: "{#PluginDir}\NavisWebAppSync.dll"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2026\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: NavisInstalled('2026')
+Source: "{#PluginDir}\BinaRibbon.xaml"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2026\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: NavisInstalled('2026')
+Source: "{#PluginDir}\Resources\*"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2026\Plugins\NavisWebAppSync\Resources"; Flags: ignoreversion recursesubdirs; Check: NavisInstalled('2026')
+Source: "{#PluginDir}\Newtonsoft.Json.dll"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2026\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: NavisInstalled('2026')
 ; 2025
-Source: "{#PluginDir}\NavisWebAppSync.dll"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2025\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{commonpf}\Autodesk\Navisworks Manage 2025'))
-Source: "{#PluginDir}\BinaRibbon.xaml"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2025\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{commonpf}\Autodesk\Navisworks Manage 2025'))
-Source: "{#PluginDir}\Resources\*"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2025\Plugins\NavisWebAppSync\Resources"; Flags: ignoreversion recursesubdirs; Check: DirExists(ExpandConstant('{commonpf}\Autodesk\Navisworks Manage 2025'))
-Source: "{#PluginDir}\Newtonsoft.Json.dll"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2025\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{commonpf}\Autodesk\Navisworks Manage 2025'))
+Source: "{#PluginDir}\NavisWebAppSync.dll"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2025\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: NavisInstalled('2025')
+Source: "{#PluginDir}\BinaRibbon.xaml"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2025\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: NavisInstalled('2025')
+Source: "{#PluginDir}\Resources\*"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2025\Plugins\NavisWebAppSync\Resources"; Flags: ignoreversion recursesubdirs; Check: NavisInstalled('2025')
+Source: "{#PluginDir}\Newtonsoft.Json.dll"; DestDir: "{commonpf}\Autodesk\Navisworks Manage 2025\Plugins\NavisWebAppSync"; Flags: ignoreversion; Check: NavisInstalled('2025')
 
 [Code]
-function DirExists(const Dir: String): Boolean;
+function NavisInstalled(Year: String): Boolean;
+var
+  NavisPath: String;
 begin
-  Result := DirExists(Dir);
+  NavisPath := ExpandConstant('{commonpf}\Autodesk\Navisworks Manage ' + Year);
+  Result := DirExists(NavisPath);
 end;
 
 [Messages]
