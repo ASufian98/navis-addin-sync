@@ -19,7 +19,8 @@ namespace NavisWebAppSync
         {
             InitializeComponent();
             _config = BinaConfig.Load();
-            UseStagingCheckbox.IsChecked = _config.UseStaging;
+            // Environment is compile-time; hide the checkbox
+            UseStagingCheckbox.Visibility = Visibility.Collapsed;
             UpdateEnvironmentDisplay();
             EmailTextBox.Focus();
         }
@@ -35,19 +36,30 @@ namespace NavisWebAppSync
 
         private void UseStagingCheckbox_Changed(object sender, RoutedEventArgs e)
         {
-            _config.UseStaging = UseStagingCheckbox.IsChecked ?? false;
-            _config.Save();
-            BinaApiService.ClearUrlCache();
-            UpdateEnvironmentDisplay();
+            // No-op: environment is now compile-time
         }
 
         private void UpdateEnvironmentDisplay()
         {
-            bool isStaging = _config.UseStaging;
-            EnvironmentText.Text = isStaging ? "Staging" : "Production";
-            EnvironmentText.Foreground = isStaging
-                ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 152, 0))  // Orange
-                : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(76, 175, 80)); // Green
+            // Environment is compile-time; show channel info
+            bool isStaging = BinaConfig.Channel.Contains("Staging");
+            bool isDebug = BinaConfig.Channel.Contains("Debug");
+
+            if (isDebug)
+            {
+                EnvironmentText.Text = "Development";
+                EnvironmentText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(33, 150, 243)); // Blue
+            }
+            else if (isStaging)
+            {
+                EnvironmentText.Text = "Staging";
+                EnvironmentText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 152, 0)); // Orange
+            }
+            else
+            {
+                EnvironmentText.Text = "Production";
+                EnvironmentText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(76, 175, 80)); // Green
+            }
         }
 
         private async void LoginButton_Click(object sender, RoutedEventArgs e)
