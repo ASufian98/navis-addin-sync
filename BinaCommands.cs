@@ -15,6 +15,7 @@ namespace NavisWebAppSync
         public override void OnLoaded()
         {
             Autodesk.Navisworks.Api.Application.Idle += OnIdle;
+            UpdateService.Start();
         }
 
         private void OnIdle(object sender, System.EventArgs e)
@@ -65,6 +66,8 @@ namespace NavisWebAppSync
     {
         public override int Execute(params string[] parameters)
         {
+            if (!UpdateService.EnsureUpToDate()) return 0;
+
             try
             {
                 var config = BinaConfig.Load();
@@ -172,6 +175,8 @@ namespace NavisWebAppSync
     {
         public override int Execute(params string[] parameters)
         {
+            if (!UpdateService.EnsureUpToDate()) return 0;
+
             var config = BinaConfig.Load();
             string selectedPath = ShowFolderPickerDialog(config.LastDownloadPath);
 
@@ -226,6 +231,8 @@ namespace NavisWebAppSync
     {
         public override int Execute(params string[] parameters)
         {
+            if (!UpdateService.EnsureUpToDate()) return 0;
+
             try
             {
                 var config = BinaConfig.Load();
@@ -300,6 +307,8 @@ namespace NavisWebAppSync
     {
         public override int Execute(params string[] parameters)
         {
+            if (!UpdateService.EnsureUpToDate()) return 0;
+
             try
             {
                 var config = BinaConfig.Load();
