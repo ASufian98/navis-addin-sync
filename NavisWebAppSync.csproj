@@ -8,6 +8,12 @@
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
     <LangVersion>latest</LangVersion>
+    <!-- Release channels: Debug embeds .env.local, Staging embeds
+         .env.staging, Release embeds .env.production. BinaConfig.LoadEnv
+         switches on DEBUG / STAGING. -->
+    <Configurations>Debug;Staging;Release</Configurations>
+    <DefineConstants Condition="'$(Configuration)' == 'Staging'">$(DefineConstants);STAGING</DefineConstants>
+    <Optimize Condition="'$(Configuration)' == 'Staging'">true</Optimize>
   </PropertyGroup>
 
   <!-- Navisworks install location. Override with -p:NavisworksPath=... ; otherwise probe known install dirs (2027 → 2026 → 2025). -->
@@ -48,6 +54,16 @@
     <None Include="Resources\*.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Env files embedded so they travel inside the DLL. BinaConfig picks
+         .env.local on Debug, .env.staging on Staging, .env.production on
+         Release via #if DEBUG / #elif STAGING. LogicalName keeps the
+         leading-dot filename from mangling the manifest resource name. -->
+    <EmbeddedResource Include=".env.local" LogicalName="env.local" />
+    <EmbeddedResource Include=".env.staging" LogicalName="env.staging" />
+    <EmbeddedResource Include=".env.production" LogicalName="env.production" />
   </ItemGroup>
 
   <ItemGroup>
