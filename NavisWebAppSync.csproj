@@ -69,8 +69,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
-  <!-- Post-build: Copy DLL, XAML, and Resources to Navisworks Plugins subfolder (requires admin rights) -->
-  <Target Name="PostBuild" AfterTargets="Build">
+  <!-- Post-build: Copy DLL, XAML, and Resources to Navisworks Plugins subfolder (requires admin rights).
+       Skip with -p:SkipPluginDeploy=true to build without overwriting the live plugin. -->
+  <Target Name="PostBuild" AfterTargets="Build" Condition="'$(SkipPluginDeploy)' != 'true'">
     <MakeDir Directories="$(NavisworksPath)\Plugins\NavisWebAppSync\" ContinueOnError="true" />
     <MakeDir Directories="$(NavisworksPath)\Plugins\NavisWebAppSync\Resources\" ContinueOnError="true" />
     <Copy SourceFiles="$(TargetPath)"
