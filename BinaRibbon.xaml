@@ -22,8 +22,8 @@
                     ShowText="True" />
                 <nw:NWRibbonButton
                     Id="BINA.PullLatestFiles"
-                    Title="Pull Latest Files"
-                    ToolTip="Pull the latest files from BINA Cloud"
+                    Title="Download Model"
+                    ToolTip="Browse and download models from BINA Cloud"
                     Size="Large"
                     ShowText="True" />
                 <nw:NWRibbonButton

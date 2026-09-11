@@ -60,7 +60,7 @@ namespace NavisWebAppSync
 
     // Button command - Login To Bina (1st)
     [Plugin("BINA.01_Login", "ACAP", DisplayName = "Login To Bina", ToolTip = "Login to BINA Cloud")]
-    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\Ribbon_Cloud_16.ico", LargeIcon = "..\\..\\Images\\Ribbon_Cloud_32.ico")]
+    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "Resources\\login.png", LargeIcon = "Resources\\login.png")]
     public class LoginCommand : AddInPlugin
     {
         public override int Execute(params string[] parameters)
@@ -167,7 +167,7 @@ namespace NavisWebAppSync
 
     // Button command - Choose Download Path (2nd)
     [Plugin("BINA.02_ChoosePath", "ACAP", DisplayName = "Choose Path", ToolTip = "Choose the folder path for downloads")]
-    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\FoldersIcon.ico", LargeIcon = "..\\..\\Images\\FoldersIcon.ico")]
+    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "Resources\\folder.png", LargeIcon = "Resources\\folder.png")]
     public class ChoosePathCommand : AddInPlugin
     {
         public override int Execute(params string[] parameters)
@@ -219,9 +219,9 @@ namespace NavisWebAppSync
         }
     }
 
-    // Button command - Pull Latest Files (3rd)
-    [Plugin("BINA.03_PullLatestFiles", "ACAP", DisplayName = "Pull Latest Files", ToolTip = "Pull the latest files from BINA Cloud")]
-    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\Ribbon_Refresh_16.ico", LargeIcon = "..\\..\\Images\\Ribbon_Refresh_32.ico")]
+    // Button command - Download Model (3rd)
+    [Plugin("BINA.03_PullLatestFiles", "ACAP", DisplayName = "Download Model", ToolTip = "Browse and download models from BINA Cloud")]
+    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "Resources\\download.png", LargeIcon = "Resources\\download.png")]
     public class PullLatestFilesCommand : AddInPlugin
     {
         public override int Execute(params string[] parameters)
@@ -241,30 +241,43 @@ namespace NavisWebAppSync
                     return 0;
                 }
 
-                // Get or set download path
-                string downloadPath = config.LastDownloadPath;
-                if (string.IsNullOrEmpty(downloadPath) || !Directory.Exists(downloadPath))
+                // Check if project is selected
+                if (config.ProjectId <= 0)
                 {
-                    // Show folder picker
-                    using (var dialog = new FolderBrowserDialog())
-                    {
-                        dialog.Description = "Select folder to save downloaded files";
-                        dialog.ShowNewFolderButton = true;
-
-                        if (dialog.ShowDialog() != DialogResult.OK)
-                        {
-                            return 0; // User cancelled
-                        }
-
-                        downloadPath = dialog.SelectedPath;
-                        config.LastDownloadPath = downloadPath;
-                        config.Save();
-                    }
+                    MessageBox.Show(
+                        "Please select a project first (via Login button).",
+                        "No Project Selected",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return 0;
                 }
 
-                // Show download results window
-                var downloadWindow = new DownloadResultsWindow(config, downloadPath);
-                downloadWindow.ShowDialog();
+                // Download root: use LastDownloadPath if set (via Choose Path), else Desktop/BINA_Downloads
+                // Don't update this from downloaded file path - that causes nesting
+                string downloadRoot = config.LastDownloadPath;
+                if (string.IsNullOrEmpty(downloadRoot) || !Directory.Exists(downloadRoot))
+                {
+                    downloadRoot = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                        "BINA_Downloads");
+                }
+
+                // Show model browser
+                using (var api = new SyncApiClient(config.GetApiBaseUrl(), config.AccessToken))
+                {
+                    var browser = new ModelBrowserWindow(api, config.ProjectId, config.ProjectName, downloadRoot);
+                    bool? result = browser.ShowDialog();
+
+                    if (result == true && !string.IsNullOrEmpty(browser.DownloadedPath))
+                    {
+                        // Reveal in explorer
+                        try
+                        {
+                            System.Diagnostics.Process.Start("explorer.exe", "/select,\"" + browser.DownloadedPath + "\"");
+                        }
+                        catch { }
+                    }
+                }
 
                 return 0;
             }
@@ -282,7 +295,7 @@ namespace NavisWebAppSync
 
     // Button command - Upload Latest Report (4th)
     [Plugin("BINA.04_UploadLatestReport", "ACAP", DisplayName = "Upload Clash Report", ToolTip = "Upload clash detection report to BINA Cloud")]
-    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "..\\..\\Images\\Ribbon_Send_16.ico", LargeIcon = "..\\..\\Images\\Ribbon_Send_32.ico")]
+    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "Resources\\upload.png", LargeIcon = "Resources\\upload.png")]
     public class UploadLatestReportCommand : AddInPlugin
     {
         public override int Execute(params string[] parameters)

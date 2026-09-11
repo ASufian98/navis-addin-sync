@@ -8,12 +8,26 @@
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
     <LangVersion>latest</LangVersion>
+    <!-- Release channels: Debug embeds .env.local, Staging embeds
+         .env.staging, Release embeds .env.production. BinaConfig.LoadEnv
+         switches on DEBUG / STAGING. -->
+    <Configurations>Debug;Staging;Release</Configurations>
+    <DefineConstants Condition="'$(Configuration)' == 'Staging'">$(DefineConstants);STAGING</DefineConstants>
+    <Optimize Condition="'$(Configuration)' == 'Staging'">true</Optimize>
   </PropertyGroup>
 
-  <!-- Navisworks install location. Override with -p:NavisworksPath=... ; otherwise probe known install dirs. -->
+  <!-- Navisworks install location. Override with -p:NavisworksPath=... ; otherwise probe known install dirs (2027 → 2026 → 2025). -->
   <PropertyGroup>
+    <!-- 2027 -->
+    <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2027\Autodesk.Navisworks.Api.dll')">C:\Program Files\Autodesk\Navisworks Manage 2027</NavisworksPath>
+    <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('D:\Naviswork\Navisworks Manage 2027\Autodesk.Navisworks.Api.dll')">D:\Naviswork\Navisworks Manage 2027</NavisworksPath>
+    <!-- 2026 -->
     <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2026\Autodesk.Navisworks.Api.dll')">C:\Program Files\Autodesk\Navisworks Manage 2026</NavisworksPath>
     <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('D:\Naviswork\Navisworks Manage 2026\Autodesk.Navisworks.Api.dll')">D:\Naviswork\Navisworks Manage 2026</NavisworksPath>
+    <!-- 2025 -->
+    <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2025\Autodesk.Navisworks.Api.dll')">C:\Program Files\Autodesk\Navisworks Manage 2025</NavisworksPath>
+    <NavisworksPath Condition="'$(NavisworksPath)' == '' AND Exists('D:\Naviswork\Navisworks Manage 2025\Autodesk.Navisworks.Api.dll')">D:\Naviswork\Navisworks Manage 2025</NavisworksPath>
+    <!-- Fallback -->
     <NavisworksPath Condition="'$(NavisworksPath)' == ''">C:\Program Files\Autodesk\Navisworks Manage 2026</NavisworksPath>
   </PropertyGroup>
 
@@ -37,20 +51,40 @@
     <None Include="BinaRibbon.xaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Resources\*.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embed ONLY the env file for this configuration. Each build carries
+         only its own URLs — no staging/localhost leak in production DLLs.
+         All three use the same LogicalName so BinaConfig.LoadEnv reads "env". -->
+    <EmbeddedResource Condition="'$(Configuration)' == 'Debug'" Include=".env.local" LogicalName="env" />
+    <EmbeddedResource Condition="'$(Configuration)' == 'Staging'" Include=".env.staging" LogicalName="env" />
+    <EmbeddedResource Condition="'$(Configuration)' == 'Release'" Include=".env.production" LogicalName="env" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
-  <!-- Post-build: Copy DLL and XAML to Navisworks Plugins subfolder (requires admin rights) -->
-  <Target Name="PostBuild" AfterTargets="Build">
+  <!-- Post-build: Copy DLL, XAML, and Resources to Navisworks Plugins subfolder (requires admin rights).
+       Skip with -p:SkipPluginDeploy=true to build without overwriting the live plugin. -->
+  <Target Name="PostBuild" AfterTargets="Build" Condition="'$(SkipPluginDeploy)' != 'true'">
     <MakeDir Directories="$(NavisworksPath)\Plugins\NavisWebAppSync\" ContinueOnError="true" />
+    <MakeDir Directories="$(NavisworksPath)\Plugins\NavisWebAppSync\Resources\" ContinueOnError="true" />
     <Copy SourceFiles="$(TargetPath)"
           DestinationFolder="$(NavisworksPath)\Plugins\NavisWebAppSync\"
           ContinueOnError="true" />
     <Copy SourceFiles="$(TargetDir)BinaRibbon.xaml"
           DestinationFolder="$(NavisworksPath)\Plugins\NavisWebAppSync\"
+          ContinueOnError="true" />
+    <ItemGroup>
+      <ResourcePngs Include="$(TargetDir)Resources\*.png" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ResourcePngs)"
+          DestinationFolder="$(NavisworksPath)\Plugins\NavisWebAppSync\Resources\"
           ContinueOnError="true" />
     <Message Text="Build complete. Copy to $(NavisworksPath)\Plugins\NavisWebAppSync\" Importance="high" />
   </Target>
