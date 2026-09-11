@@ -23,43 +23,19 @@ namespace NavisWebAppSync
                 ? string.Join(", ", config.DisciplineTypes)
                 : "All Disciplines";
 
-            // Set environment toggle
-            UseStagingCheckbox.IsChecked = config.UseStaging;
+            // Environment is compile-time; hide toggle, show channel
+            UseStagingCheckbox.Visibility = Visibility.Collapsed;
             UpdateEnvironmentUrl();
         }
 
         private void UseStagingCheckbox_Changed(object sender, RoutedEventArgs e)
         {
-            bool newValue = UseStagingCheckbox.IsChecked ?? false;
-            if (newValue != _config.UseStaging)
-            {
-                var result = MessageBox.Show(
-                    "Changing environment will log you out.\nContinue?",
-                    "Environment Change",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    _config.UseStaging = newValue;
-                    _config.ClearSession();
-                    _config.Save();
-                    BinaApiService.ClearUrlCache();
-                    LoggedOut = true;
-                    DialogResult = true;
-                    Close();
-                }
-                else
-                {
-                    // Revert checkbox
-                    UseStagingCheckbox.IsChecked = _config.UseStaging;
-                }
-            }
+            // No-op: environment is compile-time (handler kept for XAML binding)
         }
 
         private void UpdateEnvironmentUrl()
         {
-            EnvironmentUrlText.Text = _config.GetApiBaseUrl();
+            EnvironmentUrlText.Text = $"{BinaConfig.ChannelDescription}\n{_config.GetApiBaseUrl()}";
         }
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
